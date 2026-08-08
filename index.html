@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>円盤石鉱山 -Monolith Mine-</title>
 <style>
   :root{
@@ -19,7 +19,7 @@
     --danger:#d1595a;
     --good:#5cc38a;
   }
-  *{box-sizing:border-box;}
+  *{box-sizing:border-box;touch-action:manipulation;}
   html,body{
     margin:0;padding:0;height:100%;
     background:
@@ -29,6 +29,7 @@
     color:var(--text);
     font-family: "Yu Gothic", "Hiragino Sans", "Segoe UI", sans-serif;
     -webkit-font-smoothing:antialiased;
+    touch-action:manipulation;
   }
   .app{
     max-width:720px;
@@ -271,6 +272,12 @@
   }
   .select-chip.selected{border-color:var(--ore);color:var(--ore);}
 
+  .sticky-select-panel{
+    position:sticky;z-index:3;
+    background:var(--bg-panel);
+    box-shadow:0 6px 10px -6px rgba(0,0,0,.5);
+  }
+
   .log-box{
     font-size:11px;color:var(--text-dim);max-height:120px;overflow-y:auto;
     display:flex;flex-direction:column-reverse;gap:4px;
@@ -471,6 +478,7 @@ const CONTINENTS = {
     startFarmCapacity:3,
     bloodlines: BLOODLINES_FIMBA, ranks: RANKS_FIMBA, quests: QUESTS_FIMBA,
     topRankKey:"GALAXY", meijinThreshold:30000,
+    shardToGoldRate:4,
   },
   ima: {
     key:"ima", name:"IMa大陸",
@@ -478,10 +486,12 @@ const CONTINENTS = {
     startFarmCapacity:2,
     bloodlines: BLOODLINES_IMA, ranks: RANKS_IMA, quests: QUESTS_IMA,
     topRankKey:"ISEKAI", meijinThreshold:null,
+    shardToGoldRate:25,
   },
 };
 const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA];
 const TRAVEL_COST = 25000;
+const CONVERTER_SHARDS_PER_TICK = 5;
 
 function freshContinentState(contKey){
   return {
@@ -489,6 +499,7 @@ function freshContinentState(contKey){
     farmCapacity: CONTINENTS[contKey].startFarmCapacity,
     monsters: [], codex: {}, arenaWinnings: 0,
     autoCombineUnlocked:false, autoCombineEnabled:false, useFruitForCombine:false,
+    converterUnlocked:false, converterEnabled:false,
     globalMult: 1.0,
   };
 }
@@ -567,6 +578,12 @@ function toast(msg){
   setTimeout(()=>t.remove(), 2400);
 }
 
+function applyStickyOffset(el){
+  if(!el) return;
+  const head = document.querySelector(".sticky-head");
+  el.style.top = (head ? head.offsetHeight : 0) + "px";
+}
+
 /* =========================================================
    Economy: shop costs
 ========================================================= */
@@ -576,6 +593,7 @@ function priestCost(){ const c=cs(), m=contMeta(); return Math.floor(500 * Math.
 function trainingCost(){ const c=cs(), m=contMeta(); return Math.floor(80 * Math.pow(1.25, c.trainingLevel) * m.costMult); }
 function farmExpandCost(){ const c=cs(), m=contMeta(); return Math.floor(300 * Math.pow(1.6, c.farmCapacity - m.startFarmCapacity) * m.costMult); }
 function autoCombineDeviceCost(){ return Math.floor(3000 * contMeta().costMult); }
+function converterCost(){ return Math.floor(2000 * contMeta().costMult); }
 
 function pickaxeMult(){ return 1 + (state.items?.pickaxes ?? 0) * 0.04; }
 function shardPerSec(){
@@ -895,6 +913,38 @@ function autoCombineTick(){
 }
 
 /* =========================================================
+   Actions: converter（かけら→ゴールド変換器）
+========================================================= */
+function buyConverterDevice(){
+  const cst = cs(); const c = converterCost();
+  if(state.gold < c || cst.converterUnlocked) return;
+  state.gold -= c;
+  cst.converterUnlocked = true;
+  cst.converterEnabled = true;
+  addLog(`🔄 かけら変換器を導入しました`);
+  renderGacha(); updateHeader();
+}
+
+function toggleConverter(){
+  const cst = cs();
+  if(!cst.converterUnlocked) return;
+  cst.converterEnabled = !cst.converterEnabled;
+  renderGacha();
+}
+
+function converterTick(){
+  const cst = cs(), meta = contMeta();
+  if(!cst.converterUnlocked || !cst.converterEnabled) return;
+  const amount = Math.min(CONVERTER_SHARDS_PER_TICK, state.shards);
+  if(amount <= 0) return;
+  state.shards -= amount;
+  const goldGain = amount * meta.shardToGoldRate;
+  state.gold += goldGain;
+  updateHeader();
+  if(state.currentTab==="gacha") renderGacha();
+}
+
+/* =========================================================
    Actions: tournament（大会）
 ========================================================= */
 function getRankForMonster(m){
@@ -1154,12 +1204,39 @@ function renderGacha(highlightMon=null){
     </div>
 
     <div class="panel">
+      <h2>変換器（かけら→ゴールド）</h2>
+      ${!cst.converterUnlocked ? `
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🔄 変換器を導入</div>
+            <div class="desc">余った円盤石のかけらをゴールドに変換します（${meta.name}レート: 1個=${meta.shardToGoldRate}G）</div>
+          </div>
+          <button class="buy-btn" id="buyConverterBtn" ${state.gold<converterCost()?"disabled":""}>導入<br>${fmt(converterCost())}G</button>
+        </div>
+      ` : `
+        <div class="toggle-row">
+          <div>
+            <div style="font-weight:700;font-size:13px;">🔄 自動変換</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、約4秒ごとにかけら最大${CONVERTER_SHARDS_PER_TICK}個をゴールドに変換します（1個=${meta.shardToGoldRate}G）。再生用にかけらを貯めたい時はOFFにしてください。</div>
+          </div>
+          <div class="toggle-switch ${cst.converterEnabled?'on':''}" id="converterToggle"><div class="knob"></div></div>
+        </div>
+      `}
+    </div>
+
+    <div class="panel">
       <h2>血統について</h2>
       <p style="font-size:11px;color:var(--text-dim);">${meta.name}の純血統は8種類。再生でも合体でも誕生し、組み合わせは「図鑑」タブで確認できます。</p>
     </div>
   `;
   document.getElementById("gachaBtn").onclick = doGacha;
   document.getElementById("buyPriestBtn").onclick = buyPriest;
+  if(document.getElementById("buyConverterBtn")){
+    document.getElementById("buyConverterBtn").onclick = buyConverterDevice;
+  }
+  if(document.getElementById("converterToggle")){
+    document.getElementById("converterToggle").onclick = toggleConverter;
+  }
 }
 
 /* --- 図鑑モーダル（モンスター図鑑：FIMBA/IMa切替 ＋ アイテム図鑑） --- */
@@ -1394,9 +1471,11 @@ function renderFarm(){
 
 function renderArena(){
   const cst = cs(), meta = contMeta();
-  const active = cst.monsters.filter(m=>m.status==="active" && m.lifespan>0);
+  const active = cst.monsters
+    .filter(m=>m.status==="active" && m.lifespan>0)
+    .sort((a,b)=>(b.power+b.wisdom)-(a.power+a.wisdom));
   document.getElementById("mainArea").innerHTML = `
-    <div class="panel">
+    <div class="panel sticky-select-panel" id="arenaSelectPanel">
       <h2>出場モンスターを選択（${meta.name}）</h2>
       ${active.length===0 ? `<div class="empty-msg">出場可能なモンスターがいません（活動中かつ寿命が残っている必要があります）</div>` : `
       <div class="select-mon-row">
@@ -1437,6 +1516,7 @@ function renderArena(){
   document.querySelectorAll(".enter-btn").forEach(el=>{
     el.onclick = ()=> enterTournament(el.dataset.rank);
   });
+  applyStickyOffset(document.getElementById("arenaSelectPanel"));
 }
 
 function renderAdventure(){
@@ -1450,7 +1530,9 @@ function renderAdventure(){
     return;
   }
   const cst = cs(), meta = contMeta();
-  const active = cst.monsters.filter(m=>m.status==="active" && m.lifespan>0);
+  const active = cst.monsters
+    .filter(m=>m.status==="active" && m.lifespan>0)
+    .sort((a,b)=>(b.power+b.wisdom)-(a.power+a.wisdom));
   document.getElementById("mainArea").innerHTML = `
     <div class="panel">
       <h2>道具袋</h2>
@@ -1578,6 +1660,8 @@ function normalizeState(){
   Object.keys(state.continents).forEach(contKey=>{
     const cst = state.continents[contKey];
     cst.codex = cst.codex || {};
+    cst.converterUnlocked = cst.converterUnlocked || false;
+    cst.converterEnabled = cst.converterEnabled || false;
     cst.monsters = (cst.monsters || []).map(m=>{
       if(!m.primary || !m.secondary){
         const key = LEGACY_TYPE_MAP[m.type] || CONTINENTS[contKey].bloodlines[0].key;
@@ -1655,6 +1739,7 @@ function init(){
   setInterval(trainingTick, 5000);
   setInterval(priestTick, 8000);
   setInterval(autoCombineTick, 10000);
+  setInterval(converterTick, 4000);
   setInterval(()=>saveGame(true), 10000);
 }
 
