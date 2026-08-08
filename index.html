@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>円盤石鉱山 -Monolith Mine-</title>
+<style>
+  :root{
+    --bg-deep:#0d0f14;
+    --bg-panel:#171a22;
+    --bg-panel2:#1e222c;
+    --line:#2a2f3c;
+    --ore:#e8a33d;
+    --ore-dim:#8a611f;
+    --mystic:#8b6fd6;
+    --mystic-dim:#4c3f7a;
+    --text:#e7e4da;
+    --text-dim:#8b8f9c;
+    --danger:#d1595a;
+    --good:#5cc38a;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:
+      radial-gradient(ellipse at 20% -10%, #1c1f2c 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 110%, #1a1520 0%, transparent 50%),
+      var(--bg-deep);
+    color:var(--text);
+    font-family: "Yu Gothic", "Hiragino Sans", "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:720px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .sticky-head{
+    position:sticky;top:0;z-index:5;
+  }
+  header.topbar{
+    padding:14px 18px 10px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#151822,#101319);
+  }
+  .title-row{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:8px;gap:8px;
+  }
+  .title-row .title-left{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+  .title-row h1{
+    font-size:15px;letter-spacing:.14em;margin:0;
+    color:var(--ore);font-weight:700;text-transform:uppercase;
+  }
+  .title-row .badge{
+    font-size:10px;color:var(--mystic);border:1px solid var(--mystic-dim);
+    padding:2px 8px;border-radius:20px;letter-spacing:.05em;
+  }
+  .codex-open-btn{
+    background:var(--bg-panel2);border:1px solid var(--mystic-dim);color:var(--mystic);
+    font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer;
+    white-space:nowrap;flex-shrink:0;
+  }
+  .continent-badge{
+    background:var(--bg-panel2);border:1px solid var(--ore-dim);color:var(--ore);
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;
+    white-space:nowrap;
+  }
+  .codex-tabbar{ display:flex; gap:6px; margin-bottom:12px; }
+  .codex-tab-btn{
+    flex:1; background:var(--bg-panel2); border:1px solid var(--line); color:var(--text-dim);
+    font-size:11px; font-weight:700; padding:7px 4px; border-radius:8px; cursor:pointer;
+  }
+  .codex-tab-btn.active{ border-color:var(--ore-dim); color:var(--ore); background:#241d12; }
+  .codex-tab-btn.locked{ opacity:.5; cursor:not-allowed; }
+  .stats-row{
+    display:flex;gap:14px;font-size:13px;flex-wrap:wrap;
+  }
+  .stat-chip{
+    display:flex;align-items:center;gap:6px;
+    background:var(--bg-panel2);
+    border:1px solid var(--line);
+    padding:4px 10px;border-radius:8px;
+  }
+  .stat-chip .k{color:var(--text-dim);font-size:11px;}
+  .stat-chip .v{font-weight:700;font-variant-numeric:tabular-nums;}
+  .gold .v{color:var(--ore);}
+  .shard .v{color:var(--mystic);}
+
+  nav.tabs{
+    display:flex;
+    border-bottom:1px solid var(--line);
+    background:var(--bg-panel);
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    flex:1;min-width:64px;
+    background:transparent;border:none;color:var(--text-dim);
+    padding:11px 6px;font-size:12px;letter-spacing:.03em;
+    cursor:pointer;border-bottom:2px solid transparent;
+    font-weight:600;white-space:nowrap;
+  }
+  nav.tabs button.active{
+    color:var(--ore);border-bottom-color:var(--ore);
+    background:linear-gradient(180deg,transparent,rgba(232,163,61,.06));
+  }
+  nav.tabs button:disabled{opacity:.35;cursor:not-allowed;}
+
+  main{flex:1;padding:16px;padding-bottom:60px;}
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .panel h2{
+    margin:0 0 10px;font-size:13px;letter-spacing:.08em;
+    color:var(--text-dim);text-transform:uppercase;font-weight:700;
+  }
+  .rock-zone{
+    text-align:center;padding:26px 10px 10px;
+  }
+  .rock-btn{
+    width:150px;height:150px;border-radius:50%;
+    border:2px solid var(--ore-dim);
+    background:
+      radial-gradient(circle at 35% 30%, #3a3226, #1b1712 70%);
+    color:var(--ore);
+    font-size:15px;font-weight:700;letter-spacing:.05em;
+    cursor:pointer;
+    box-shadow: inset 0 0 30px rgba(0,0,0,.6), 0 0 0 rgba(232,163,61,0);
+    transition: transform .06s ease, box-shadow .15s ease;
+    user-select:none;
+  }
+  .rock-btn:active{
+    transform:scale(.94);
+    box-shadow: inset 0 0 30px rgba(0,0,0,.6), 0 0 24px rgba(232,163,61,.35);
+  }
+  .float-pop{
+    position:relative;height:0;
+  }
+  .pop{
+    position:absolute;left:50%;transform:translateX(-50%);
+    font-size:13px;font-weight:700;pointer-events:none;
+    animation:floatUp 0.9s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%{opacity:1;top:0;}
+    100%{opacity:0;top:-46px;}
+  }
+  .prod-line{
+    display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);
+    margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);
+  }
+  .shop-grid{display:flex;flex-direction:column;gap:10px;}
+  .shop-item{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--bg-panel2);border:1px solid var(--line);
+    padding:10px 12px;border-radius:10px;
+  }
+  .shop-item .info{font-size:13px;}
+  .shop-item .info .name{font-weight:700;margin-bottom:2px;}
+  .shop-item .info .desc{font-size:11px;color:var(--text-dim);}
+  .shop-item .info .own{font-size:11px;color:var(--mystic);margin-top:2px;}
+  .buy-btn{
+    background:linear-gradient(180deg,#2a2116,#1b160f);
+    border:1px solid var(--ore-dim);
+    color:var(--ore);font-weight:700;font-size:12px;
+    padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;
+  }
+  .buy-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .buy-btn:not(:disabled):hover{background:#332714;}
+
+  .gacha-zone{text-align:center;padding:10px;}
+  .gacha-btn{
+    background:linear-gradient(180deg,#332a55,#1e1936);
+    border:1px solid var(--mystic-dim);
+    color:#d8cdfb;font-weight:700;font-size:14px;
+    padding:14px 26px;border-radius:12px;cursor:pointer;
+    letter-spacing:.03em;
+  }
+  .gacha-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .gacha-cost{font-size:11px;color:var(--text-dim);margin-top:8px;}
+  .gacha-result{
+    margin-top:16px;padding:14px;border-radius:10px;
+    background:var(--bg-panel2);border:1px solid var(--mystic-dim);
+    animation:appear .35s ease;
+  }
+  @keyframes appear{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .mon-card{
+    background:var(--bg-panel2);border:1px solid var(--line);
+    border-radius:10px;padding:12px;margin-bottom:10px;
+  }
+  .mon-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .mon-name{font-weight:700;font-size:14px;}
+  .mon-type{font-size:10px;color:var(--text-dim);}
+  .mon-status{
+    font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;letter-spacing:.03em;
+  }
+  .status-active{color:var(--good);border:1px solid var(--good);}
+  .status-hibernating{color:var(--text-dim);border:1px solid var(--line);}
+  .mon-stats{display:flex;gap:14px;font-size:12px;margin-bottom:8px;flex-wrap:wrap;}
+  .mon-stats span b{color:var(--ore);}
+  .life-bar-wrap{
+    height:6px;background:#0e1016;border-radius:4px;overflow:hidden;margin-bottom:6px;
+  }
+  .life-bar{height:100%;background:linear-gradient(90deg,var(--mystic-dim),var(--mystic));}
+  .mon-foot{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-dim);}
+  .mon-select{
+    cursor:pointer;
+  }
+  .mon-select.selected{outline:2px solid var(--ore);}
+
+  .empty-msg{
+    text-align:center;color:var(--text-dim);font-size:12px;padding:24px 10px;
+  }
+
+  .combine-zone{display:flex;gap:10px;margin-top:6px;}
+  .combine-slot{
+    flex:1;border:1px dashed var(--line);border-radius:8px;
+    padding:10px;text-align:center;font-size:11px;color:var(--text-dim);min-height:52px;
+  }
+  .action-btn{
+    width:100%;margin-top:10px;
+    background:linear-gradient(180deg,#22385f 0%, #16233a 100%);
+    border:1px solid #33507d;color:#cfe0ff;font-weight:700;font-size:13px;
+    padding:10px;border-radius:9px;cursor:pointer;
+  }
+  .action-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+  .rank-grid{display:flex;flex-direction:column;gap:8px;}
+  .rank-item{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--bg-panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;
+  }
+  .rank-label{
+    min-width:30px;height:30px;padding:0 6px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:12px;flex-shrink:0;letter-spacing:.02em;
+  }
+  .rank-E{background:#2a3a2a;color:#8fd18f;}
+  .rank-D{background:#2a3040;color:#8fb4d1;}
+  .rank-C{background:#3a2f2a;color:#d1b18f;}
+  .rank-B{background:#3a2a38;color:#d18fc3;}
+  .rank-A{background:#3a2a2a;color:#d18f8f;}
+  .rank-S{background:#3a341a;color:#e8d16a;}
+  .rank-SS{background:#132f3a;color:#6ad1e8;}
+  .rank-M{background:#2c1a3a;color:#c98fd1;}
+  .rank-COSMO{background:#161a3a;color:#96a3ef;}
+  .rank-GALAXY{background:linear-gradient(135deg,#1a1030,#3a1a4a);color:#f0c8ff;box-shadow:0 0 8px rgba(224,160,255,.35);}
+  .rank-TENKAI{background:#132a3a;color:#8fd1ff;}
+  .rank-ISEKAI{background:linear-gradient(135deg,#2a0a3a,#0a1a3a);color:#c8a6ff;box-shadow:0 0 8px rgba(160,120,255,.4);}
+  .rank-mid{flex:1;padding:0 10px;font-size:12px;}
+  .rank-mid .req{color:var(--text-dim);font-size:11px;}
+  .enter-btn{
+    background:var(--bg-panel);border:1px solid var(--ore-dim);color:var(--ore);
+    font-size:11px;font-weight:700;padding:7px 10px;border-radius:7px;cursor:pointer;
+  }
+  .enter-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+  .select-mon-row{
+    display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;
+  }
+  .select-chip{
+    flex-shrink:0;padding:7px 12px;border-radius:20px;font-size:11px;
+    background:var(--bg-panel2);border:1px solid var(--line);color:var(--text-dim);cursor:pointer;
+  }
+  .select-chip.selected{border-color:var(--ore);color:var(--ore);}
+
+  .log-box{
+    font-size:11px;color:var(--text-dim);max-height:120px;overflow-y:auto;
+    display:flex;flex-direction:column-reverse;gap:4px;
+  }
+  .log-box div{border-bottom:1px dotted var(--line);padding-bottom:3px;}
+
+  .footer-actions{
+    display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);
+    background:var(--bg-panel);
+  }
+  .footer-actions button{
+    flex:1;background:var(--bg-panel2);border:1px solid var(--line);color:var(--text-dim);
+    font-size:11px;padding:9px;border-radius:8px;cursor:pointer;
+  }
+  .footer-actions button:hover{color:var(--text);}
+  .toast{
+    position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
+    background:var(--bg-panel2);border:1px solid var(--ore-dim);color:var(--ore);
+    padding:8px 16px;border-radius:20px;font-size:12px;z-index:50;
+    animation:toastFade 2.4s ease forwards;
+  }
+  @keyframes toastFade{
+    0%{opacity:0;transform:translate(-50%,10px);}
+    12%{opacity:1;transform:translate(-50%,0);}
+    85%{opacity:1;}
+    100%{opacity:0;}
+  }
+  .locked-panel{
+    text-align:center;color:var(--text-dim);font-size:12px;padding:40px 20px;
+  }
+  .locked-panel .lock-icon{font-size:26px;margin-bottom:10px;}
+
+  .codex-grid{ overflow-x:auto; padding-bottom:4px; }
+  .codex-row{ display:flex; align-items:center; gap:3px; margin-bottom:3px; }
+  .codex-row-label{
+    width:78px; flex-shrink:0; font-size:10px; color:var(--text-dim);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .codex-row-cells{ display:flex; gap:3px; flex-shrink:0; }
+  .codex-col-label{ width:26px; text-align:center; font-size:12px; color:var(--text-dim); flex-shrink:0; }
+  .codex-cell{
+    width:26px;height:26px;flex-shrink:0;border-radius:6px;
+    background:var(--bg-panel2); border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);
+  }
+  .codex-cell.found{ border-color:var(--ore-dim); background:#241d12; color:var(--text); }
+  .codex-cell.found.pure{ border-color:var(--mystic-dim); background:#1c1830; }
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(6,7,10,.72);
+    display:flex;align-items:flex-end;justify-content:center;
+    z-index:100;
+  }
+  .modal-sheet{
+    width:100%;max-width:720px;max-height:86vh;overflow-y:auto;
+    background:var(--bg-panel);border-top:1px solid var(--line);
+    border-radius:16px 16px 0 0;padding:16px;
+    animation:modalUp .22s ease;
+  }
+  @keyframes modalUp{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .modal-head h2{margin:0;font-size:14px;letter-spacing:.06em;color:var(--text);text-transform:none;}
+  .modal-close-btn{
+    background:var(--bg-panel2);border:1px solid var(--line);color:var(--text-dim);
+    width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0;
+  }
+
+  .toggle-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--bg-panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;margin-top:8px;
+  }
+  .toggle-switch{
+    width:44px;height:24px;border-radius:20px;position:relative;cursor:pointer;flex-shrink:0;
+    background:#2a2f3c;border:1px solid var(--line);transition:background .15s ease;
+  }
+  .toggle-switch.on{background:linear-gradient(90deg,var(--mystic-dim),var(--mystic));border-color:var(--mystic);}
+  .toggle-switch .knob{
+    position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+    background:#e7e4da;transition:left .15s ease;
+  }
+  .toggle-switch.on .knob{left:22px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="sticky-head">
+    <header class="topbar">
+      <div class="title-row">
+        <div class="title-left">
+          <h1>⛏ 円盤石鉱山</h1>
+          <button class="continent-badge" id="continentBtn">FIMBA大陸 ▾</button>
+          <span class="badge" id="meijinBadge" style="display:none;">名人</span>
+        </div>
+        <button class="codex-open-btn" id="openCodexBtn">📖 図鑑</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-chip gold"><span class="k">ゴールド</span><span class="v" id="goldVal">0</span></div>
+        <div class="stat-chip shard"><span class="k">かけら</span><span class="v" id="shardVal">0</span></div>
+        <div class="stat-chip"><span class="k">倍率</span><span class="v" id="multVal">x1.00</span></div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="mine">採掘</button>
+      <button class="tab-btn" data-tab="gacha">再生</button>
+      <button class="tab-btn" data-tab="farm">ファーム</button>
+      <button class="tab-btn" data-tab="arena">大会</button>
+      <button class="tab-btn" data-tab="adventure">冒険</button>
+    </nav>
+  </div>
+
+  <main id="mainArea"></main>
+  <div id="modalRoot"></div>
+
+  <div class="footer-actions">
+    <button id="saveBtn">💾 保存</button>
+    <button id="loadBtn">📂 読込</button>
+    <button id="resetBtn">🗑 リセット</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   Continents & Bloodlines
+========================================================= */
+const NAME_PARTS = ["ゴロ","ヅキ","バル","キン","トパ","ルシ","ミア","ザン","フォル","ネビ"];
+
+const BLOODLINES_FIMBA = [
+  { key:"rock",    name:"ロック",       emoji:"🐉", powerRange:[8,16],  wisdomRange:[2,6],   lifeRange:[14,20], weight:15 },
+  { key:"aqua",    name:"アクア",       emoji:"🫧", powerRange:[2,6],   wisdomRange:[8,16],  lifeRange:[16,22], weight:15 },
+  { key:"wind",    name:"ウィンド",     emoji:"🦅", powerRange:[5,10],  wisdomRange:[5,10],  lifeRange:[12,18], weight:15 },
+  { key:"flare",   name:"フレア",       emoji:"🔥", powerRange:[10,18], wisdomRange:[1,5],   lifeRange:[10,15], weight:15 },
+  { key:"forest",  name:"フォレスト",   emoji:"🌿", powerRange:[3,7],   wisdomRange:[9,17],  lifeRange:[18,26], weight:15 },
+  { key:"thunder", name:"サンダー",     emoji:"⚡", powerRange:[7,13],  wisdomRange:[7,13],  lifeRange:[11,16], weight:15 },
+  { key:"shadow",  name:"シャドウ",     emoji:"🌑", powerRange:[9,15],  wisdomRange:[9,15],  lifeRange:[13,19], weight:8  },
+  { key:"mystic",  name:"ミスティック", emoji:"🦄", powerRange:[16,26], wisdomRange:[16,26], lifeRange:[22,30], weight:2  },
+];
+
+const BLOODLINES_IMA = [
+  { key:"steel",   name:"スチール",     emoji:"🤖", powerRange:[14,29], wisdomRange:[4,11],  lifeRange:[25,36], weight:15 },
+  { key:"crystal", name:"クリスタル",   emoji:"❄️", powerRange:[4,11],  wisdomRange:[14,29], lifeRange:[29,40], weight:15 },
+  { key:"sand",    name:"サンド",       emoji:"🏜️", powerRange:[9,18],  wisdomRange:[9,18],  lifeRange:[22,32], weight:15 },
+  { key:"blaze",   name:"ブレイズ",     emoji:"🌋", powerRange:[18,32], wisdomRange:[2,9],   lifeRange:[18,27], weight:15 },
+  { key:"abyss",   name:"アビス",       emoji:"🐙", powerRange:[5,13],  wisdomRange:[16,31], lifeRange:[32,47], weight:15 },
+  { key:"magnet",  name:"マグネット",   emoji:"🧲", powerRange:[13,23], wisdomRange:[13,23], lifeRange:[20,29], weight:15 },
+  { key:"void",    name:"ヴォイド",     emoji:"🕳️", powerRange:[16,27], wisdomRange:[16,27], lifeRange:[23,34], weight:8  },
+  { key:"celest",  name:"セレスト",     emoji:"👼", powerRange:[29,47], wisdomRange:[29,47], lifeRange:[40,54], weight:2  },
+];
+
+const LEGACY_TYPE_MAP = {
+  "ロックドラゴン":"rock", "アクアスライム":"aqua", "ウィンドバード":"wind", "幻獣グリフォン":"mystic"
+};
+
+const RANKS_FIMBA = [
+  { key:"E",      req:15,  reward:[20,40] },
+  { key:"D",      req:35,  reward:[50,90] },
+  { key:"C",      req:60,  reward:[100,180] },
+  { key:"B",      req:95,  reward:[220,360] },
+  { key:"A",      req:140, reward:[450,700] },
+  { key:"S",      req:200, reward:[900,1500] },
+  { key:"SS",     req:280, reward:[1800,2800] },
+  { key:"M",      req:380, reward:[3200,5000] },
+  { key:"COSMO",  req:520, reward:[6000,9000] },
+  { key:"GALAXY", req:700, reward:[12000,18000] },
+];
+const RANKS_IMA = [
+  { key:"E",      req:27,   reward:[40,80] },
+  { key:"D",      req:63,   reward:[100,180] },
+  { key:"C",      req:108,  reward:[200,360] },
+  { key:"B",      req:171,  reward:[440,720] },
+  { key:"A",      req:252,  reward:[900,1400] },
+  { key:"S",      req:360,  reward:[1800,3000] },
+  { key:"SS",     req:504,  reward:[3600,5600] },
+  { key:"TENKAI", label:"天界", req:720,  reward:[8000,12000] },
+  { key:"ISEKAI", label:"異世界", req:1000, reward:[18000,28000] },
+];
+
+const QUESTS_FIMBA = [
+  { key:"near",   name:"近郊の遺跡", desc:"手頃な難易度。まずはここから。", req:40,  lifeCost:2, goldRange:[80,150],  pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"deep",   name:"深部の坑道", desc:"歯応えのある中難度クエスト。",   req:90,  lifeCost:3, goldRange:[200,380], pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
+  { key:"secret", name:"秘境の祭壇", desc:"名人向けの高難度クエスト。",     req:160, lifeCost:4, goldRange:[500,900], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+];
+const QUESTS_IMA = [
+  { key:"near",   name:"衛星軌道の遺跡", desc:"IMaでの手頃な難易度。", req:72,   lifeCost:2, goldRange:[300,550],   pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"deep",   name:"次元の狭間",     desc:"歯応えのある中難度クエスト。", req:162, lifeCost:3, goldRange:[700,1300],  pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
+  { key:"secret", name:"虚空の祭壇",     desc:"IMaの高難度クエスト。", req:288,  lifeCost:4, goldRange:[1800,3200], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+];
+
+const CONTINENTS = {
+  fimba: {
+    key:"fimba", name:"FIMBA大陸",
+    shardRegenCost:10, goldMult:1, shardMult:1, costMult:1,
+    startFarmCapacity:3,
+    bloodlines: BLOODLINES_FIMBA, ranks: RANKS_FIMBA, quests: QUESTS_FIMBA,
+    topRankKey:"GALAXY", meijinThreshold:30000,
+  },
+  ima: {
+    key:"ima", name:"IMa大陸",
+    shardRegenCost:1000, goldMult:3, shardMult:60, costMult:5,
+    startFarmCapacity:2,
+    bloodlines: BLOODLINES_IMA, ranks: RANKS_IMA, quests: QUESTS_IMA,
+    topRankKey:"ISEKAI", meijinThreshold:null,
+  },
+};
+const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA];
+const TRAVEL_COST = 25000;
+
+function freshContinentState(contKey){
+  return {
+    workers:0, machines:0, priests:0, trainingLevel:0,
+    farmCapacity: CONTINENTS[contKey].startFarmCapacity,
+    monsters: [], codex: {}, arenaWinnings: 0,
+    autoCombineUnlocked:false, autoCombineEnabled:false, useFruitForCombine:false,
+    globalMult: 1.0,
+  };
+}
+
+/* =========================================================
+   State
+========================================================= */
+const DEFAULT_STATE = () => ({
+  gold: 0,
+  shards: 0,
+  clickLevel: 1,
+  nextMonId: 1,
+  currentContinent: "fimba",
+  continents: { fimba: freshContinentState("fimba"), ima: freshContinentState("ima") },
+  isMeijin: false,
+  isImaChampion: false,
+  items: { pickaxes: 0, fruits: 0 },   // 冒険で入手する道具（共通）
+  itemsInventory: {},                  // 血統専用アイテムの所持数 { "cont_bloodline": count }
+  itemCodex: {},                       // 血統専用アイテムの発見フラグ
+  log: []
+});
+
+let state = DEFAULT_STATE();
+let selectedTournamentMon = null;
+let selectedAdventureMon = null;
+let selectedCombine = [];
+let codexModalContinent = "fimba";
+let codexModalView = "monster"; // 'monster' | 'item'
+
+function cs(){ return state.continents[state.currentContinent]; }
+function contMeta(cont){ return CONTINENTS[cont || state.currentContinent]; }
+
+function getBloodline(key){ return ALL_BLOODLINES.find(b=>b.key===key) || ALL_BLOODLINES[0]; }
+function comboKey(primaryKey, secondaryKey){ return primaryKey + "_" + secondaryKey; }
+function bloodlineLabel(primaryKey, secondaryKey){
+  const p = getBloodline(primaryKey), s = getBloodline(secondaryKey);
+  return primaryKey === secondaryKey ? p.name : `${p.name}×${s.name}`;
+}
+function weightedPick(pool){
+  const total = pool.reduce((sum,p)=>sum+p.w,0);
+  let r = Math.random()*total;
+  for(const p of pool){
+    if(r < p.w) return p.key;
+    r -= p.w;
+  }
+  return pool[pool.length-1].key;
+}
+function discoverCombo(primaryKey, secondaryKey){
+  const codex = cs().codex;
+  const key = comboKey(primaryKey, secondaryKey);
+  if(!codex[key]){
+    codex[key] = true;
+    return true;
+  }
+  return false;
+}
+
+/* =========================================================
+   Utility
+========================================================= */
+const rand = (min,max) => Math.random()*(max-min)+min;
+const randInt = (min,max) => Math.floor(rand(min,max+1));
+const fmt = (n) => Math.floor(n).toLocaleString();
+const pickName = () => NAME_PARTS[randInt(0,NAME_PARTS.length-1)] + NAME_PARTS[randInt(0,NAME_PARTS.length-1)];
+
+function addLog(msg){
+  state.log.push(msg);
+  if(state.log.length > 40) state.log.shift();
+}
+
+function toast(msg){
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2400);
+}
+
+/* =========================================================
+   Economy: shop costs
+========================================================= */
+function workerCost(){ const c=cs(), m=contMeta(); return Math.floor(20 * Math.pow(1.15, c.workers) * m.costMult); }
+function machineCost(){ const c=cs(), m=contMeta(); return Math.floor(150 * Math.pow(1.17, c.machines) * m.costMult); }
+function priestCost(){ const c=cs(), m=contMeta(); return Math.floor(500 * Math.pow(1.45, c.priests) * m.costMult); }
+function trainingCost(){ const c=cs(), m=contMeta(); return Math.floor(80 * Math.pow(1.25, c.trainingLevel) * m.costMult); }
+function farmExpandCost(){ const c=cs(), m=contMeta(); return Math.floor(300 * Math.pow(1.6, c.farmCapacity - m.startFarmCapacity) * m.costMult); }
+function autoCombineDeviceCost(){ return Math.floor(3000 * contMeta().costMult); }
+
+function pickaxeMult(){ return 1 + (state.items?.pickaxes ?? 0) * 0.04; }
+function shardPerSec(){
+  const c = cs(), m = contMeta();
+  return (c.workers*0.15 + c.machines*0.6) * c.globalMult * pickaxeMult() * m.shardMult;
+}
+function goldPerSec(){
+  const c = cs(), m = contMeta();
+  return (c.workers*1.2 + c.machines*6) * c.globalMult * pickaxeMult() * m.goldMult;
+}
+function clickGold(){
+  const c = cs(), m = contMeta();
+  return (2 + state.clickLevel*1.5) * c.globalMult * pickaxeMult() * m.goldMult;
+}
+function clickShardChance(){ return Math.min(0.6, (0.12 + state.clickLevel*0.01) * pickaxeMult()); }
+
+/* =========================================================
+   Monster creation
+========================================================= */
+function createMonster(primaryKey, secondaryKey, powerOverride=null, wisdomOverride=null, lifeOverride=null){
+  const p = getBloodline(primaryKey), s = getBloodline(secondaryKey);
+  const power = powerOverride ?? +rand((p.powerRange[0]+s.powerRange[0])/2, (p.powerRange[1]+s.powerRange[1])/2).toFixed(1);
+  const wisdom = wisdomOverride ?? +rand((p.wisdomRange[0]+s.wisdomRange[0])/2, (p.wisdomRange[1]+s.wisdomRange[1])/2).toFixed(1);
+  const life = lifeOverride ?? randInt(Math.round((p.lifeRange[0]+s.lifeRange[0])/2), Math.round((p.lifeRange[1]+s.lifeRange[1])/2));
+  const isNewDiscovery = discoverCombo(primaryKey, secondaryKey);
+  const mon = {
+    id: state.nextMonId++,
+    name: pickName(),
+    primary: primaryKey,
+    secondary: secondaryKey,
+    emoji: primaryKey === secondaryKey ? p.emoji : (p.emoji + s.emoji),
+    power, wisdom,
+    lifespan: life,
+    maxLifespan: life,
+    status: "active"
+  };
+  mon._newDiscovery = isNewDiscovery;
+  return mon;
+}
+
+function enforceFarmCapacity(){
+  const cst = cs();
+  const active = cst.monsters.filter(m=>m.status!=="released");
+  const overflow = active.length - cst.farmCapacity;
+  if(overflow > 0){
+    const sorted = [...active].sort((a,b)=>(a.power+a.wisdom)-(b.power+b.wisdom));
+    for(let i=0;i<overflow;i++){
+      const m = sorted[i];
+      const bonus = (m.power+m.wisdom) * 0.0006;
+      cst.globalMult = +(cst.globalMult + bonus).toFixed(4);
+      m.status = "released";
+      addLog(`🌿 ${m.name}(${bloodlineLabel(m.primary,m.secondary)}) がファームの枠を超え野生に還り、恩恵として全体倍率+${bonus.toFixed(4)}`);
+    }
+    cst.monsters = cst.monsters.filter(m=>m.status!=="released");
+    toast("ファーム満員のため一部を野生に還しました");
+  }
+}
+
+/* =========================================================
+   Game loop
+========================================================= */
+function autoMineTick(){
+  const g = goldPerSec();
+  const s = shardPerSec();
+  state.gold += g;
+  state.shards += s;
+  if(state.currentTab==="mine") renderMine();
+  updateHeader();
+}
+
+function trainingTick(){
+  const cst = cs();
+  const eff = 1 + cst.trainingLevel*0.35;
+  let changed = false;
+  cst.monsters.forEach(m=>{
+    if(m.status !== "active") return;
+    m.power = +(m.power + rand(0.3,0.9)*eff).toFixed(1);
+    m.wisdom = +(m.wisdom + rand(0.3,0.9)*eff).toFixed(1);
+    m.lifespan -= 1;
+    changed = true;
+    if(m.lifespan <= 0){
+      m.lifespan = 0;
+      m.status = "hibernating";
+      addLog(`💤 ${m.name}(${bloodlineLabel(m.primary,m.secondary)}) が寿命を迎え冬眠状態になりました`);
+    }
+  });
+  if(changed && state.currentTab==="farm") renderFarm();
+}
+
+/* =========================================================
+   Actions: mining
+========================================================= */
+function doMineClick(evt){
+  const g = clickGold();
+  state.gold += g;
+  let gotShard = false;
+  if(Math.random() < clickShardChance()){
+    state.shards += 1;
+    gotShard = true;
+  }
+  updateHeader();
+  spawnPop(evt, `+${fmt(g)}G` + (gotShard ? " +1💎" : ""));
+}
+
+function spawnPop(evt, text){
+  const wrap = document.getElementById("popWrap");
+  if(!wrap) return;
+  const el = document.createElement("div");
+  el.className = "pop";
+  el.style.left = (40 + rand(-20,20)) + "%";
+  el.style.color = text.includes("💎") ? "#d8cdfb" : "#e8a33d";
+  el.textContent = text;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+function buyWorker(){
+  const cst = cs(); const c = workerCost();
+  if(state.gold < c) return;
+  state.gold -= c;
+  cst.workers++;
+  addLog(`👷 作業員を雇用 (${cst.workers}人目)`);
+  renderMine(); updateHeader();
+}
+function buyMachine(){
+  const cst = cs(); const c = machineCost();
+  if(state.gold < c) return;
+  state.gold -= c;
+  cst.machines++;
+  addLog(`🚜 重機を導入 (${cst.machines}台目)`);
+  renderMine(); updateHeader();
+}
+function buyPriest(){
+  const cst = cs(); const c = priestCost();
+  if(state.gold < c) return;
+  state.gold -= c;
+  cst.priests++;
+  addLog(`⛩️ 神官を雇用 (${cst.priests}人目)。ファームに空きがあれば自動で円盤石を再生します`);
+  renderGacha(); updateHeader();
+}
+function buyTraining(){
+  const cst = cs(); const c = trainingCost();
+  if(state.gold < c) return;
+  state.gold -= c;
+  cst.trainingLevel++;
+  addLog(`🏋️ トレーニング機材を強化 (Lv.${cst.trainingLevel})`);
+  renderFarm(); updateHeader();
+}
+function buyFarmExpand(){
+  const cst = cs(); const c = farmExpandCost();
+  if(state.gold < c) return;
+  state.gold -= c;
+  cst.farmCapacity++;
+  addLog(`🏕️ ファーム枠を拡張 (${cst.farmCapacity}枠)`);
+  renderFarm(); updateHeader();
+}
+
+/* =========================================================
+   Actions: regen（再生）
+========================================================= */
+function performRegen(){
+  const cst = cs(), meta = contMeta();
+  const COST = meta.shardRegenCost;
+  if(state.shards < COST) return null;
+  state.shards -= COST;
+
+  const pool = meta.bloodlines.map(b=>({key:b.key, w:b.weight}));
+  const primaryKey = weightedPick(pool);
+  let secondaryKey = primaryKey;
+  if(Math.random() < 0.15){
+    secondaryKey = weightedPick(pool.filter(p=>p.key!==primaryKey));
+  }
+
+  const mon = createMonster(primaryKey, secondaryKey);
+  cst.monsters.push(mon);
+  const label = bloodlineLabel(primaryKey, secondaryKey);
+  const isPure = primaryKey === secondaryKey;
+  addLog(isPure
+    ? `✨ 円盤石の再生で ${mon.name}(${label}) が誕生！`
+    : `🧬 円盤石の再生で雑種 ${mon.name}(${label}) が誕生！`);
+  if(mon._newDiscovery) addLog(`📖 図鑑に新しい組み合わせ「${label}」が記録されました！`);
+  enforceFarmCapacity();
+  return mon;
+}
+
+function doGacha(){
+  const mon = performRegen();
+  if(!mon) return;
+  updateHeader();
+  renderGacha(mon);
+}
+
+function priestTick(){
+  const cst = cs(), meta = contMeta();
+  if(cst.priests <= 0) return;
+  let acted = false;
+  for(let i=0;i<cst.priests;i++){
+    const activeCount = cst.monsters.filter(m=>m.status!=="released").length;
+    if(activeCount >= cst.farmCapacity) break;
+    if(state.shards < meta.shardRegenCost) break;
+    const mon = performRegen();
+    if(!mon) break;
+    addLog(`⛩️ 神官が ${mon.name} を自動で再生しました`);
+    acted = true;
+  }
+  if(acted){
+    updateHeader();
+    if(state.currentTab==="gacha") renderGacha();
+    if(state.currentTab==="farm") renderFarm();
+    if(state.currentTab==="mine") renderMine();
+  }
+}
+
+/* =========================================================
+   Actions: combine（合体）
+========================================================= */
+function toggleCombineSelect(id){
+  const idx = selectedCombine.indexOf(id);
+  if(idx>=0){ selectedCombine.splice(idx,1); }
+  else{
+    if(selectedCombine.length>=2) selectedCombine.shift();
+    selectedCombine.push(id);
+  }
+  renderFarm();
+}
+
+function performCombine(aId, bId, useFruit){
+  const cst = cs(), meta = contMeta();
+  const a = cst.monsters.find(m=>m.id===aId);
+  const b = cst.monsters.find(m=>m.id===bId);
+  if(!a || !b || a.status!=="hibernating" || b.status!=="hibernating") return null;
+
+  let usedFruit = false;
+  if(useFruit && state.items.fruits > 0){
+    state.items.fruits -= 1;
+    usedFruit = true;
+  }
+
+  const rareKey = meta.bloodlines[meta.bloodlines.length-1].key;
+  const primaryPool = [
+    {key:a.primary,   w:40}, {key:a.secondary, w:20},
+    {key:b.primary,   w:30}, {key:b.secondary, w:10},
+  ];
+  const secondaryPool = [
+    {key:b.primary,   w:35}, {key:b.secondary, w:25},
+    {key:a.primary,   w:20}, {key:a.secondary, w:20},
+  ];
+  if(usedFruit){
+    primaryPool.push({key:rareKey, w:180});
+    secondaryPool.push({key:rareKey, w:180});
+  }
+
+  const primaryKey = weightedPick(primaryPool);
+  const secondaryKey = weightedPick(secondaryPool);
+  const isRareResult = primaryKey===rareKey || secondaryKey===rareKey;
+
+  const bonusMult = isRareResult ? rand(1.15,1.4) : rand(1.05,1.25);
+  const power = +(((a.power+b.power)/2) * bonusMult).toFixed(1);
+  const wisdom = +(((a.wisdom+b.wisdom)/2) * bonusMult).toFixed(1);
+  const child = createMonster(primaryKey, secondaryKey, power, wisdom);
+
+  cst.monsters = cst.monsters.filter(m=>m.id!==aId && m.id!==bId);
+  cst.monsters.push(child);
+  const label = bloodlineLabel(primaryKey, secondaryKey);
+  addLog(isRareResult
+    ? `🌟 ${a.name}と${b.name}が合体し、幻の血を引く ${child.name}(${label}) が誕生！`
+    : `🥚 ${a.name}と${b.name}が合体し、${child.name}(${label}) が誕生！`);
+  if(child._newDiscovery) addLog(`📖 図鑑に新しい組み合わせ「${label}」が記録されました！`);
+  if(usedFruit) addLog(`🍎 覚醒の実を使用しました（残り${state.items.fruits}個）`);
+  enforceFarmCapacity();
+  return { child, isRareResult };
+}
+
+function doCombine(){
+  if(selectedCombine.length !== 2) return;
+  const cst = cs();
+  const [aId,bId] = selectedCombine;
+  const result = performCombine(aId, bId, cst.useFruitForCombine);
+  cst.useFruitForCombine = false;
+  if(!result) return;
+  selectedCombine = [];
+  renderFarm();
+  toast(result.isRareResult ? "🌟 幻の血が混ざりました！" : "合体成功！新しいモンスターが誕生しました");
+}
+
+function buyAutoCombineDevice(){
+  const cst = cs(); const c = autoCombineDeviceCost();
+  if(state.gold < c || cst.autoCombineUnlocked) return;
+  state.gold -= c;
+  cst.autoCombineUnlocked = true;
+  cst.autoCombineEnabled = true;
+  addLog(`⚙️ 自動合体装置を導入しました`);
+  renderFarm(); updateHeader();
+}
+
+function toggleAutoCombine(){
+  const cst = cs();
+  if(!cst.autoCombineUnlocked) return;
+  cst.autoCombineEnabled = !cst.autoCombineEnabled;
+  renderFarm();
+}
+
+function autoCombineTick(){
+  const cst = cs();
+  if(!cst.autoCombineUnlocked || !cst.autoCombineEnabled) return;
+  const hibernating = cst.monsters.filter(m=>m.status==="hibernating");
+  if(hibernating.length < 2) return;
+  const pool = hibernating.filter(m=>!selectedCombine.includes(m.id));
+  if(pool.length < 2) return;
+  const a = pool[0], b = pool[1];
+  const result = performCombine(a.id, b.id, false);
+  if(result){
+    addLog(`⚙️ 自動合体装置が稼働しました`);
+    updateHeader();
+    if(state.currentTab==="farm") renderFarm();
+  }
+}
+
+/* =========================================================
+   Actions: tournament（大会）
+========================================================= */
+function getRankForMonster(m){
+  const ranks = contMeta().ranks;
+  const sum = m.power + m.wisdom;
+  let best = null;
+  for(const r of ranks){ if(sum >= r.req) best = r; }
+  return best;
+}
+
+function enterTournament(rankKey){
+  const cst = cs(), meta = contMeta();
+  const m = cst.monsters.find(x=>x.id===selectedTournamentMon);
+  if(!m || m.status!=="active" || m.lifespan<=0) return;
+  const rank = meta.ranks.find(r=>r.key===rankKey);
+  const sum = m.power + m.wisdom;
+  if(sum < rank.req){ toast("ステータスが不足しています"); return; }
+
+  m.lifespan -= 1;
+  if(m.lifespan<=0){ m.lifespan=0; m.status="hibernating"; }
+
+  const winChance = Math.min(0.92, 0.35 + (sum-rank.req)/rank.req);
+  const win = Math.random() < winChance;
+  const dispName = rank.label || rank.key;
+  if(win){
+    const reward = randInt(...rank.reward);
+    state.gold += reward;
+    if(rankKey === meta.topRankKey){
+      cst.arenaWinnings += reward;
+      if(state.currentContinent==="fimba"){
+        if(meta.meijinThreshold!=null && cst.arenaWinnings >= meta.meijinThreshold && !state.isMeijin){
+          state.isMeijin = true;
+          toast("🏆 名人に認定されました！冒険タブとIMa大陸への渡航が解放されます");
+        }
+      } else {
+        if(!state.isImaChampion){
+          state.isImaChampion = true;
+          toast("🌌 異世界の覇者に認定されました！");
+        }
+      }
+    }
+    addLog(`🏆 ${m.name}が${dispName}ランク大会で勝利！ +${reward}G`);
+  } else {
+    addLog(`💥 ${m.name}が${dispName}ランク大会で敗北...`);
+  }
+  if(m.status==="hibernating") addLog(`💤 ${m.name}が寿命を迎え冬眠状態になりました`);
+
+  updateHeader();
+  renderArena();
+}
+
+/* =========================================================
+   Actions: adventure（冒険）
+========================================================= */
+function dropBloodlineItem(bloodlineKey){
+  const cont = state.currentContinent;
+  const bl = getBloodline(bloodlineKey);
+  const itemKey = `${cont}_${bloodlineKey}`;
+  state.itemsInventory[itemKey] = (state.itemsInventory[itemKey]||0) + 1;
+  const isNew = !state.itemCodex[itemKey];
+  state.itemCodex[itemKey] = true;
+  cs().globalMult = +(cs().globalMult + 0.01).toFixed(4);
+  return { key:itemKey, name:`${bl.name}の秘宝`, isNew };
+}
+
+function dispatchAdventure(questKey){
+  if(!state.isMeijin) return;
+  const cst = cs(), meta = contMeta();
+  const m = cst.monsters.find(x=>x.id===selectedAdventureMon);
+  const quest = meta.quests.find(q=>q.key===questKey);
+  if(!m || !quest) return;
+  if(m.status!=="active" || m.lifespan<=0) return;
+
+  const sum = m.power + m.wisdom;
+  const cost = Math.min(m.lifespan, quest.lifeCost);
+  m.lifespan -= cost;
+  if(m.lifespan<=0){ m.lifespan=0; m.status="hibernating"; }
+
+  const winChance = Math.min(0.9, 0.4 + (sum-quest.req)/quest.req);
+  const win = Math.random() < winChance;
+
+  let goldGain = 0, pxGain = 0, frGain = 0, itemGain = null;
+  if(win){
+    goldGain = randInt(...quest.goldRange);
+    if(Math.random() < quest.pickaxeChance) pxGain = randInt(...quest.itemAmount);
+    if(Math.random() < quest.fruitChance) frGain = randInt(...quest.itemAmount);
+    if(Math.random() < 0.12) itemGain = dropBloodlineItem(m.primary);
+  } else {
+    goldGain = Math.floor(randInt(...quest.goldRange) * 0.25);
+    if(Math.random() < quest.pickaxeChance*0.4) pxGain = 1;
+  }
+
+  state.gold += goldGain;
+  state.items.pickaxes += pxGain;
+  state.items.fruits += frGain;
+
+  const itemMsg = [
+    pxGain>0 ? `⛏️ツルハシ+${pxGain}` : "",
+    frGain>0 ? `🍎覚醒の実+${frGain}` : "",
+    itemGain ? `💠${itemGain.name}+1` : "",
+  ].filter(Boolean).join(" ");
+
+  addLog(win
+    ? `🗺️ ${m.name}が「${quest.name}」から帰還！ +${goldGain}G ${itemMsg}`
+    : `⚠️ ${m.name}が「${quest.name}」で苦戦し撤退... +${goldGain}G ${itemMsg}`);
+  if(itemGain && itemGain.isNew) addLog(`📦 アイテム図鑑に「${itemGain.name}」が記録されました！`);
+  if(m.status==="hibernating") addLog(`💤 ${m.name}が寿命を迎え冬眠状態になりました`);
+
+  updateHeader();
+  renderAdventure();
+}
+
+/* =========================================================
+   Actions: travel（大陸間移動）
+========================================================= */
+function travelTo(cont){
+  if(state.currentContinent === cont) return;
+  if(cont === "ima" && !state.isMeijin) return;
+  if(state.gold < TRAVEL_COST){ toast("ゴールドが足りません"); return; }
+  state.gold -= TRAVEL_COST;
+  state.currentContinent = cont;
+  selectedCombine = [];
+  selectedTournamentMon = null;
+  selectedAdventureMon = null;
+  addLog(`⛴️ ${CONTINENTS[cont].name}へ渡航しました（-${fmt(TRAVEL_COST)}G）`);
+  closeModal();
+  updateHeader();
+  switchTab(state.currentTab || "mine");
+}
+
+/* =========================================================
+   Rendering: header
+========================================================= */
+function updateHeader(){
+  document.getElementById("goldVal").textContent = fmt(state.gold);
+  document.getElementById("shardVal").textContent = fmt(state.shards);
+  document.getElementById("multVal").textContent = "x"+cs().globalMult.toFixed(2);
+  document.getElementById("meijinBadge").style.display = state.isMeijin ? "inline-block" : "none";
+  document.getElementById("continentBtn").textContent = CONTINENTS[state.currentContinent].name + " ▾";
+}
+
+function renderTravelModal(){
+  return `
+    <div class="modal-overlay" id="travelOverlay">
+      <div class="modal-sheet">
+        <div class="modal-head">
+          <h2>大陸を移動</h2>
+          <button class="modal-close-btn" id="closeTravelBtn">✕</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-dim);margin-top:-6px;">渡航には ${fmt(TRAVEL_COST)}G かかります。渡航後も元の大陸の資産（モンスター・施設・図鑑）はそのまま残り、いつでも戻れます。</p>
+        <div class="shop-grid">
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">🏝️ FIMBA大陸</div>
+              <div class="desc">${state.currentContinent==="fimba" ? "現在地です。" : "円盤石10個で再生。標準的な採掘レート。"}</div>
+            </div>
+            <button class="buy-btn" id="travelFimbaBtn" ${state.currentContinent==="fimba"?"disabled":""}>${state.currentContinent==="fimba" ? "現在地" : `移動<br>${fmt(TRAVEL_COST)}G`}</button>
+          </div>
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">🌌 IMa大陸 ${!state.isMeijin?"🔒":""}</div>
+              <div class="desc">${!state.isMeijin ? "FIMBAで銀河ランクを制覇（名人認定）すると渡航できます。" : (state.currentContinent==="ima" ? "現在地です。" : "円盤石1000個で再生。採掘レートはFIMBAより高インフレ。モンスターも施設も全く別物です。")}</div>
+            </div>
+            <button class="buy-btn" id="travelImaBtn" ${(!state.isMeijin || state.currentContinent==="ima")?"disabled":""}>${state.currentContinent==="ima" ? "現在地" : `移動<br>${fmt(TRAVEL_COST)}G`}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function openTravelModal(){
+  document.getElementById("modalRoot").innerHTML = renderTravelModal();
+  document.getElementById("closeTravelBtn").onclick = closeModal;
+  document.getElementById("travelOverlay").onclick = (e)=>{ if(e.target.id==="travelOverlay") closeModal(); };
+  document.getElementById("travelFimbaBtn").onclick = ()=>travelTo("fimba");
+  document.getElementById("travelImaBtn").onclick = ()=>travelTo("ima");
+}
+
+/* =========================================================
+   Rendering: tabs
+========================================================= */
+function renderMine(){
+  const cst = cs(), meta = contMeta();
+  document.getElementById("mainArea").innerHTML = `
+    <div class="panel">
+      <h2>岩を掘る（${meta.name}）</h2>
+      <div class="rock-zone">
+        <div class="float-pop" id="popWrap"></div>
+        <button class="rock-btn" id="rockBtn">岩を掘る<br>⛏</button>
+      </div>
+      <div class="prod-line">
+        <span>クリック: +${fmt(clickGold())}G / かけら確率 ${(clickShardChance()*100).toFixed(0)}%</span>
+        <span>自動: +${fmt(goldPerSec())}G/秒・+${fmt(shardPerSec())}💎/秒</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>雇用・設備</h2>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">👷 作業員</div>
+            <div class="desc">毎秒 自動採掘（少量）</div>
+            <div class="own">所持: ${cst.workers}人</div>
+          </div>
+          <button class="buy-btn" id="buyWorkerBtn" ${state.gold<workerCost()?"disabled":""}>雇う<br>${fmt(workerCost())}G</button>
+        </div>
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🚜 重機</div>
+            <div class="desc">毎秒 自動採掘（大量）</div>
+            <div class="own">所持: ${cst.machines}台</div>
+          </div>
+          <button class="buy-btn" id="buyMachineBtn" ${state.gold<machineCost()?"disabled":""}>導入<br>${fmt(machineCost())}G</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>ログ</h2>
+      <div class="log-box">${state.log.slice(-8).map(l=>`<div>${l}</div>`).join("")}</div>
+    </div>
+  `;
+  document.getElementById("rockBtn").onclick = (e)=>doMineClick(e);
+  document.getElementById("buyWorkerBtn").onclick = buyWorker;
+  document.getElementById("buyMachineBtn").onclick = buyMachine;
+}
+
+function renderGacha(highlightMon=null){
+  const cst = cs(), meta = contMeta();
+  const cost = meta.shardRegenCost;
+  document.getElementById("mainArea").innerHTML = `
+    <div class="panel gacha-zone">
+      <h2 style="text-align:left;">円盤石を再生する（${meta.name}）</h2>
+      <p style="font-size:12px;color:var(--text-dim);">円盤石のかけらを${fmt(cost)}個消費してモンスターを再生します。ほとんどは純血統ですが、低確率で雑種（異なる血統の組み合わせ）が生まれます。</p>
+      <button class="gacha-btn" id="gachaBtn" ${state.shards<cost?"disabled":""}>💎 再生する</button>
+      <div class="gacha-cost">所持かけら: ${fmt(state.shards)} / 必要: ${fmt(cost)}</div>
+      ${highlightMon ? `
+        <div class="gacha-result">
+          <div style="font-size:28px;">${highlightMon.emoji}</div>
+          <div style="font-weight:700;margin:4px 0;">${highlightMon.name}（${bloodlineLabel(highlightMon.primary,highlightMon.secondary)}）</div>
+          <div style="font-size:12px;color:var(--text-dim);">ちから ${highlightMon.power} ／ 賢さ ${highlightMon.wisdom} ／ 寿命 ${highlightMon.lifespan}</div>
+        </div>` : ""
+      }
+    </div>
+
+    <div class="panel">
+      <h2>神官（自動再生）</h2>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">⛩️ 神官を雇う</div>
+            <div class="desc">ファームに空きがある時、自動でかけらを消費してモンスターを再生します（現在 ${cst.priests}人）</div>
+          </div>
+          <button class="buy-btn" id="buyPriestBtn" ${state.gold<priestCost()?"disabled":""}>雇う<br>${fmt(priestCost())}G</button>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;">※神官は約8秒ごとに1回ずつ自動再生を試みます。かけらとファームの空きが必要です。</div>
+    </div>
+
+    <div class="panel">
+      <h2>血統について</h2>
+      <p style="font-size:11px;color:var(--text-dim);">${meta.name}の純血統は8種類。再生でも合体でも誕生し、組み合わせは「図鑑」タブで確認できます。</p>
+    </div>
+  `;
+  document.getElementById("gachaBtn").onclick = doGacha;
+  document.getElementById("buyPriestBtn").onclick = buyPriest;
+}
+
+/* --- 図鑑モーダル（モンスター図鑑：FIMBA/IMa切替 ＋ アイテム図鑑） --- */
+function renderMonsterCodexBody(cont){
+  const meta = CONTINENTS[cont];
+  const contState = state.continents[cont];
+  const bloodlines = meta.bloodlines;
+  const total = bloodlines.length * bloodlines.length;
+  const discoveredCount = Object.keys(contState.codex).length;
+  const rows = bloodlines.map(pr=>{
+    const cells = bloodlines.map(sc=>{
+      const key = comboKey(pr.key, sc.key);
+      const found = !!contState.codex[key];
+      const isPure = pr.key === sc.key;
+      return `<div class="codex-cell ${found?'found':''} ${isPure?'pure':''}" title="${found ? bloodlineLabel(pr.key,sc.key) : '未発見'}">${found ? (isPure ? pr.emoji : pr.emoji+sc.emoji) : "❔"}</div>`;
+    }).join("");
+    return `<div class="codex-row"><div class="codex-row-label">${pr.emoji} ${pr.name}</div><div class="codex-row-cells">${cells}</div></div>`;
+  }).join("");
+
+  return `
+    <h2>${meta.name}（発見数 ${discoveredCount} / ${total}）</h2>
+    <p style="font-size:11px;color:var(--text-dim);margin-top:-6px;">縦＝主血統／横＝副血統。再生・合体でモンスターが誕生すると自動記録されます。</p>
+    <div class="codex-grid">
+      <div class="codex-row">
+        <div class="codex-row-label"></div>
+        <div class="codex-row-cells">
+          ${bloodlines.map(b=>`<div class="codex-col-label">${b.emoji}</div>`).join("")}
+        </div>
+      </div>
+      ${rows}
+    </div>
+    <h2 style="margin-top:16px;">純血統 一覧</h2>
+    <div class="shop-grid">
+      ${bloodlines.map(b=>`
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">${b.emoji} ${b.name}${b.weight<=2?' <span style="color:var(--mystic);">（激レア）</span>':''}</div>
+            <div class="desc">ちから ${b.powerRange[0]}〜${b.powerRange[1]} ／ 賢さ ${b.wisdomRange[0]}〜${b.wisdomRange[1]} ／ 寿命 ${b.lifeRange[0]}〜${b.lifeRange[1]}</div>
+            <div class="own">再生時の純血出現重み: ${b.weight}</div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderItemCodexBody(){
+  const allItems = [];
+  Object.keys(CONTINENTS).forEach(contKey=>{
+    CONTINENTS[contKey].bloodlines.forEach(b=>{
+      allItems.push({ key:`${contKey}_${b.key}`, contKey, name:`${b.name}の秘宝`, emoji:b.emoji });
+    });
+  });
+  const discoveredCount = allItems.filter(it=>state.itemCodex[it.key]).length;
+  return `
+    <h2>アイテム図鑑（発見数 ${discoveredCount} / ${allItems.length}）</h2>
+    <p style="font-size:11px;color:var(--text-dim);margin-top:-6px;">冒険でモンスターを派遣すると、まれにそのモンスターの主血統専用のアイテムを拾います。1個入手するごとに、対応する大陸の恒久的な採掘倍率が少し上がります。</p>
+    <div class="shop-grid">
+      ${allItems.map(it=>{
+        const found = !!state.itemCodex[it.key];
+        const count = state.itemsInventory[it.key]||0;
+        return `
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">${found?it.emoji:'❔'} ${found?it.name:'？？？'}</div>
+            <div class="desc">${CONTINENTS[it.contKey].name}産${found?`／所持数 ${count}`:''}</div>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderCodexModalBody(){
+  return codexModalView==="item" ? renderItemCodexBody() : renderMonsterCodexBody(codexModalContinent);
+}
+
+function renderCodexModal(){
+  const imaLocked = !state.isMeijin;
+  return `
+    <div class="modal-overlay" id="codexOverlay">
+      <div class="modal-sheet">
+        <div class="modal-head">
+          <h2>図鑑</h2>
+          <button class="modal-close-btn" id="closeCodexBtn">✕</button>
+        </div>
+        <div class="codex-tabbar">
+          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='fimba'?'active':''}" data-view="monster" data-cont="fimba">FIMBA</button>
+          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ima'?'active':''} ${imaLocked?'locked':''}" data-view="monster" data-cont="ima">IMa${imaLocked?' 🔒':''}</button>
+          <button class="codex-tab-btn ${codexModalView==='item'?'active':''}" data-view="item">アイテム</button>
+        </div>
+        <div id="codexModalBody">${renderCodexModalBody()}</div>
+      </div>
+    </div>
+  `;
+}
+
+function bindCodexModalEvents(){
+  document.getElementById("closeCodexBtn").onclick = closeModal;
+  document.getElementById("codexOverlay").onclick = (e)=>{ if(e.target.id==="codexOverlay") closeModal(); };
+  document.querySelectorAll(".codex-tab-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      if(btn.dataset.view==="monster"){
+        if(btn.dataset.cont==="ima" && !state.isMeijin) return;
+        codexModalView = "monster";
+        codexModalContinent = btn.dataset.cont;
+      } else {
+        codexModalView = "item";
+      }
+      document.getElementById("modalRoot").innerHTML = renderCodexModal();
+      bindCodexModalEvents();
+    };
+  });
+}
+
+function openCodex(){
+  codexModalView = "monster";
+  codexModalContinent = state.currentContinent==="ima" && state.isMeijin ? "ima" : "fimba";
+  document.getElementById("modalRoot").innerHTML = renderCodexModal();
+  bindCodexModalEvents();
+}
+function closeModal(){
+  document.getElementById("modalRoot").innerHTML = "";
+}
+
+function renderFarm(){
+  const cst = cs(), meta = contMeta();
+  const active = cst.monsters.filter(m=>m.status!=="released");
+  const hibernating = active.filter(m=>m.status==="hibernating");
+
+  const cardHtml = (m)=>{
+    const pct = m.maxLifespan>0 ? (m.lifespan/m.maxLifespan*100) : 0;
+    const selectable = m.status==="hibernating";
+    const isSelected = selectedCombine.includes(m.id);
+    return `
+    <div class="mon-card ${selectable?"mon-select":""} ${isSelected?"selected":""}" data-mid="${m.id}">
+      <div class="mon-head">
+        <div>
+          <div class="mon-name">${m.emoji} ${m.name}</div>
+          <div class="mon-type">${bloodlineLabel(m.primary,m.secondary)}</div>
+        </div>
+        <div class="mon-status ${m.status==='active'?'status-active':'status-hibernating'}">${m.status==='active'?'活動中':'冬眠中'}</div>
+      </div>
+      <div class="mon-stats">
+        <span>ちから <b>${m.power}</b></span>
+        <span>賢さ <b>${m.wisdom}</b></span>
+      </div>
+      <div class="life-bar-wrap"><div class="life-bar" style="width:${pct}%;"></div></div>
+      <div class="mon-foot"><span>寿命 ${m.lifespan}/${m.maxLifespan}</span>${selectable?"<span>タップで合体選択</span>":""}</div>
+    </div>`;
+  };
+
+  document.getElementById("mainArea").innerHTML = `
+    <div class="panel">
+      <h2>トレーニング設備（${meta.name}）</h2>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🏋️ トレーニング機材</div>
+            <div class="desc">自動成長の効率アップ（現在 Lv.${cst.trainingLevel}）</div>
+          </div>
+          <button class="buy-btn" id="buyTrainingBtn" ${state.gold<trainingCost()?"disabled":""}>強化<br>${fmt(trainingCost())}G</button>
+        </div>
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🏕️ ファーム拡張</div>
+            <div class="desc">最大収容数を+1（現在 ${cst.farmCapacity}枠 / ${active.length}体在籍）</div>
+          </div>
+          <button class="buy-btn" id="buyFarmBtn" ${state.gold<farmExpandCost()?"disabled":""}>拡張<br>${fmt(farmExpandCost())}G</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>ファーム（${active.length}/${cst.farmCapacity}）</h2>
+      ${active.length===0 ? `<div class="empty-msg">モンスターがいません。再生で仲間を増やしましょう。</div>` : active.map(cardHtml).join("")}
+    </div>
+
+    <div class="panel">
+      <h2>合体（冬眠中モンスター2体を選択）</h2>
+      ${hibernating.length < 2 ? `<div class="empty-msg">冬眠中のモンスターが2体以上必要です</div>` : ""}
+      <div class="combine-zone">
+        <div class="combine-slot">${selectedCombine[0] ? cst.monsters.find(m=>m.id===selectedCombine[0])?.name ?? "-" : "スロット1"}</div>
+        <div class="combine-slot">${selectedCombine[1] ? cst.monsters.find(m=>m.id===selectedCombine[1])?.name ?? "-" : "スロット2"}</div>
+      </div>
+      <div style="margin-top:10px;">
+        <button class="select-chip ${cst.useFruitForCombine?'selected':''}" id="fruitToggleBtn" ${state.items.fruits>0?"":"disabled"} style="border-radius:20px;">
+          🍎 覚醒の実を使う（所持: ${state.items.fruits}個）${cst.useFruitForCombine?" ✓有効":""}
+        </button>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:6px;">使用すると合体時に幻の血統が生まれやすくなります（1個消費・手動合体のみ）</div>
+      </div>
+      <button class="action-btn" id="combineBtn" ${selectedCombine.length!==2?"disabled":""}>🥚 合体させる</button>
+
+      <div style="margin-top:16px;border-top:1px dashed var(--line);padding-top:12px;">
+        ${!cst.autoCombineUnlocked ? `
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">⚙️ 自動合体装置</div>
+              <div class="desc">冬眠中のモンスターがいれば自動で合体させ続けます（約10秒ごと）</div>
+            </div>
+            <button class="buy-btn" id="buyAutoCombineBtn" ${state.gold<autoCombineDeviceCost()?"disabled":""}>導入<br>${fmt(autoCombineDeviceCost())}G</button>
+          </div>
+        ` : `
+          <div class="toggle-row">
+            <div>
+              <div style="font-weight:700;font-size:13px;">⚙️ 自動合体</div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、選択中スロットのモンスターは対象外です。狙った組み合わせを作る時はOFFにしてください。覚醒の実は消費しません。</div>
+            </div>
+            <div class="toggle-switch ${cst.autoCombineEnabled?'on':''}" id="autoCombineToggle"><div class="knob"></div></div>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+  document.getElementById("buyTrainingBtn").onclick = buyTraining;
+  document.getElementById("buyFarmBtn").onclick = buyFarmExpand;
+  document.getElementById("combineBtn").onclick = doCombine;
+  document.getElementById("fruitToggleBtn").onclick = ()=>{
+    cst.useFruitForCombine = !cst.useFruitForCombine;
+    renderFarm();
+  };
+  if(document.getElementById("buyAutoCombineBtn")){
+    document.getElementById("buyAutoCombineBtn").onclick = buyAutoCombineDevice;
+  }
+  if(document.getElementById("autoCombineToggle")){
+    document.getElementById("autoCombineToggle").onclick = toggleAutoCombine;
+  }
+  document.querySelectorAll(".mon-select").forEach(el=>{
+    el.onclick = ()=> toggleCombineSelect(Number(el.dataset.mid));
+  });
+}
+
+function renderArena(){
+  const cst = cs(), meta = contMeta();
+  const active = cst.monsters.filter(m=>m.status==="active" && m.lifespan>0);
+  document.getElementById("mainArea").innerHTML = `
+    <div class="panel">
+      <h2>出場モンスターを選択（${meta.name}）</h2>
+      ${active.length===0 ? `<div class="empty-msg">出場可能なモンスターがいません（活動中かつ寿命が残っている必要があります）</div>` : `
+      <div class="select-mon-row">
+        ${active.map(m=>`<div class="select-chip ${selectedTournamentMon===m.id?'selected':''}" data-mid="${m.id}">${m.emoji} ${m.name} (力${m.power}+賢${m.wisdom})</div>`).join("")}
+      </div>`}
+    </div>
+    <div class="panel">
+      <h2>大会ランク</h2>
+      <div class="rank-grid">
+        ${meta.ranks.map(r=>{
+          const m = cst.monsters.find(x=>x.id===selectedTournamentMon);
+          const sum = m ? (m.power+m.wisdom) : 0;
+          const can = m && m.status==="active" && m.lifespan>0 && sum>=r.req;
+          const dispName = r.label || r.key;
+          return `
+          <div class="rank-item">
+            <div class="rank-label rank-${r.key}">${dispName}</div>
+            <div class="rank-mid">
+              <div>報酬 ${r.reward[0]}〜${r.reward[1]}G</div>
+              <div class="req">必要ステ合計 ${r.req} ${r.key===meta.topRankKey?"（最高峰）":""}</div>
+            </div>
+            <button class="enter-btn" data-rank="${r.key}" ${can?"":"disabled"}>出場</button>
+          </div>`;
+        }).join("")}
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:10px;">
+        最高峰大会 累計賞金: ${fmt(cst.arenaWinnings)}G${meta.meijinThreshold!=null ? ` / ${fmt(meta.meijinThreshold)}G（名人判定）` : ""}
+      </div>
+    </div>
+    <div class="panel">
+      <h2>ログ</h2>
+      <div class="log-box">${state.log.slice(-8).map(l=>`<div>${l}</div>`).join("")}</div>
+    </div>
+  `;
+  document.querySelectorAll(".select-chip").forEach(el=>{
+    el.onclick = ()=>{ selectedTournamentMon = Number(el.dataset.mid); renderArena(); };
+  });
+  document.querySelectorAll(".enter-btn").forEach(el=>{
+    el.onclick = ()=> enterTournament(el.dataset.rank);
+  });
+}
+
+function renderAdventure(){
+  if(!state.isMeijin){
+    document.getElementById("mainArea").innerHTML = `
+      <div class="panel locked-panel">
+        <div class="lock-icon">🔒</div>
+        <div>「冒険」は名人に認定されると解放されます。</div>
+        <div style="margin-top:6px;">最高峰(銀河ランク)大会の累計賞金: ${fmt(state.continents.fimba.arenaWinnings)} / ${fmt(CONTINENTS.fimba.meijinThreshold)}G</div>
+      </div>`;
+    return;
+  }
+  const cst = cs(), meta = contMeta();
+  const active = cst.monsters.filter(m=>m.status==="active" && m.lifespan>0);
+  document.getElementById("mainArea").innerHTML = `
+    <div class="panel">
+      <h2>道具袋</h2>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">⛏️ ツルハシ</div>
+            <div class="desc">所持するほど採掘速度が上昇（現在 x${pickaxeMult().toFixed(2)}）</div>
+          </div>
+          <div style="font-weight:700;color:var(--ore);">${state.items.pickaxes}個</div>
+        </div>
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🍎 覚醒の実</div>
+            <div class="desc">「ファーム」タブの合体で使用すると幻の血統が出やすくなる</div>
+          </div>
+          <div style="font-weight:700;color:var(--mystic);">${state.items.fruits}個</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>派遣するモンスターを選択（${meta.name}）</h2>
+      ${active.length===0 ? `<div class="empty-msg">派遣可能なモンスターがいません（活動中かつ寿命が残っている必要があります）</div>` : `
+      <div class="select-mon-row">
+        ${active.map(m=>`<div class="select-chip ${selectedAdventureMon===m.id?'selected':''}" data-mid="${m.id}">${m.emoji} ${m.name} (力${m.power}+賢${m.wisdom}／寿命${m.lifespan})</div>`).join("")}
+      </div>`}
+    </div>
+
+    <div class="panel">
+      <h2>クエスト</h2>
+      <div class="rank-grid">
+        ${meta.quests.map(q=>{
+          const m = cst.monsters.find(x=>x.id===selectedAdventureMon);
+          const can = m && m.status==="active" && m.lifespan>0;
+          return `
+          <div class="rank-item">
+            <div class="rank-mid">
+              <div style="font-weight:700;">${q.name}</div>
+              <div class="req">${q.desc}</div>
+              <div class="req">必要ステ目安 ${q.req} ／ 消費寿命 ${q.lifeCost} ／ 報酬 ${q.goldRange[0]}〜${q.goldRange[1]}G</div>
+            </div>
+            <button class="enter-btn" data-quest="${q.key}" ${can?"":"disabled"}>派遣</button>
+          </div>`;
+        }).join("")}
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;">※必要ステ未満でも派遣は可能ですが成功率が下がります。成功時はまれに派遣モンスターの血統専用アイテムを拾います。</div>
+    </div>
+
+    <div class="panel">
+      <h2>ログ</h2>
+      <div class="log-box">${state.log.slice(-8).map(l=>`<div>${l}</div>`).join("")}</div>
+    </div>
+  `;
+  document.querySelectorAll(".select-chip").forEach(el=>{
+    el.onclick = ()=>{ selectedAdventureMon = Number(el.dataset.mid); renderAdventure(); };
+  });
+  document.querySelectorAll(".enter-btn").forEach(el=>{
+    el.onclick = ()=> dispatchAdventure(el.dataset.quest);
+  });
+}
+
+const TAB_RENDERERS = {
+  mine: renderMine,
+  gacha: renderGacha,
+  farm: renderFarm,
+  arena: renderArena,
+  adventure: renderAdventure,
+};
+
+function switchTab(tab){
+  state.currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.tab===tab);
+  });
+  TAB_RENDERERS[tab]();
+}
+
+/* =========================================================
+   Save / Load
+========================================================= */
+const SAVE_KEY = "monolith_mine_save_v1";
+
+function normalizeState(){
+  // 旧セーブ（大陸システム導入前）からの移行
+  // 旧セーブ判定：大陸システム導入前の保存は state.monsters が配列で存在する
+  if(Array.isArray(state.monsters)){
+    const legacyMonsters = (state.monsters || []).map(m=>{
+      if(!m.primary || !m.secondary){
+        const key = LEGACY_TYPE_MAP[m.type] || "rock";
+        m.primary = key; m.secondary = key;
+      }
+      return m;
+    });
+    state.continents = {
+      fimba: {
+        workers: state.workers || 0,
+        machines: state.machines || 0,
+        priests: state.priests || 0,
+        trainingLevel: state.trainingLevel || 0,
+        farmCapacity: state.farmCapacity || 3,
+        monsters: legacyMonsters,
+        codex: state.codex || {},
+        arenaWinnings: state.arenaWinnings || 0,
+        autoCombineUnlocked: state.autoCombineUnlocked || false,
+        autoCombineEnabled: state.autoCombineEnabled || false,
+        useFruitForCombine: state.useFruitForCombine || false,
+        globalMult: state.globalMult || 1.0,
+      },
+      ima: freshContinentState("ima"),
+    };
+    state.currentContinent = "fimba";
+    delete state.workers; delete state.machines; delete state.priests; delete state.trainingLevel;
+    delete state.farmCapacity; delete state.monsters; delete state.codex; delete state.arenaWinnings;
+    delete state.autoCombineUnlocked; delete state.autoCombineEnabled; delete state.useFruitForCombine; delete state.globalMult;
+  }
+  state.continents.fimba = state.continents.fimba || freshContinentState("fimba");
+  state.continents.ima = state.continents.ima || freshContinentState("ima");
+  state.currentContinent = state.currentContinent || "fimba";
+  state.items = state.items || { pickaxes: 0, fruits: 0 };
+  state.itemsInventory = state.itemsInventory || {};
+  state.itemCodex = state.itemCodex || {};
+  state.nextMonId = state.nextMonId || 1;
+
+  Object.keys(state.continents).forEach(contKey=>{
+    const cst = state.continents[contKey];
+    cst.codex = cst.codex || {};
+    cst.monsters = (cst.monsters || []).map(m=>{
+      if(!m.primary || !m.secondary){
+        const key = LEGACY_TYPE_MAP[m.type] || CONTINENTS[contKey].bloodlines[0].key;
+        m.primary = key; m.secondary = key;
+      }
+      if(!m.emoji){
+        const p = getBloodline(m.primary), s = getBloodline(m.secondary);
+        m.emoji = m.primary===m.secondary ? p.emoji : (p.emoji+s.emoji);
+      }
+      const key = comboKey(m.primary, m.secondary);
+      if(!cst.codex[key]) cst.codex[key] = true;
+      return m;
+    });
+  });
+}
+
+function saveGame(silent=false){
+  const toSave = {...state};
+  delete toSave.currentTab;
+  localStorage.setItem(SAVE_KEY, JSON.stringify(toSave));
+  if(!silent) toast("💾 セーブしました");
+}
+function loadGame(){
+  const raw = localStorage.getItem(SAVE_KEY);
+  if(!raw){ toast("セーブデータが見つかりません"); return; }
+  try{
+    const loaded = JSON.parse(raw);
+    state = {...DEFAULT_STATE(), ...loaded};
+    normalizeState();
+    toast("📂 ロードしました");
+    updateHeader();
+    switchTab(state.currentTab || "mine");
+  }catch(e){
+    toast("読み込みに失敗しました");
+  }
+}
+function resetGame(){
+  if(!confirm("本当にすべてのデータをリセットしますか？")) return;
+  localStorage.removeItem(SAVE_KEY);
+  state = DEFAULT_STATE();
+  selectedCombine = [];
+  selectedTournamentMon = null;
+  selectedAdventureMon = null;
+  codexModalContinent = "fimba";
+  codexModalView = "monster";
+  updateHeader();
+  switchTab("mine");
+  toast("リセットしました");
+}
+
+/* =========================================================
+   Init
+========================================================= */
+function init(){
+  const raw = localStorage.getItem(SAVE_KEY);
+  if(raw){
+    try{ state = {...DEFAULT_STATE(), ...JSON.parse(raw)}; }catch(e){ state = DEFAULT_STATE(); }
+  }
+  normalizeState();
+  state.currentTab = "mine";
+
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    b.onclick = ()=> switchTab(b.dataset.tab);
+  });
+  document.getElementById("saveBtn").onclick = ()=>saveGame(false);
+  document.getElementById("loadBtn").onclick = loadGame;
+  document.getElementById("resetBtn").onclick = resetGame;
+  document.getElementById("openCodexBtn").onclick = openCodex;
+  document.getElementById("continentBtn").onclick = openTravelModal;
+
+  updateHeader();
+  switchTab("mine");
+
+  setInterval(autoMineTick, 1000);
+  setInterval(trainingTick, 5000);
+  setInterval(priestTick, 8000);
+  setInterval(autoCombineTick, 10000);
+  setInterval(()=>saveGame(true), 10000);
+}
+
+init();
+
+</script>
+</body>
+</html>
