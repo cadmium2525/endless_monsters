@@ -598,8 +598,8 @@ function freshContinentState(contKey){
     monsters: [], codex: {}, arenaWinnings: 0,
     autoCombineUnlocked:false, autoCombineEnabled:false, useFruitForCombine:false, autoCombineUseFruit:false,
     converters:0, converterEnabled:false,
-    breederUnlocked:false, breederEnabled:false, breederRank:null,
-    agencyUnlocked:false, agencyEnabled:false,
+    breederUnlocked:false, breederEnabled:false, breederRank:null, breederLevel:0, breederTimer:null,
+    agencyUnlocked:false, agencyEnabled:false, agencyLevel:0, agencyTimer:null,
     globalMult: 1.0,
   };
 }
@@ -725,6 +725,28 @@ function autoCombineDeviceCost(){ return Math.floor(3000 * contMeta().costMult);
 function converterCost(){ const c=cs(), m=contMeta(); return Math.floor(CONVERTER_UNIT_COST_BASE * Math.pow(1.6, c.converters) * m.costMult); }
 function breederCost(){ return Math.floor(4000 * contMeta().costMult); }
 function agencyCost(){ return Math.floor(4000 * contMeta().costMult); }
+
+const BREEDER_BASE_INTERVAL = 12000;
+const BREEDER_MAX_LEVEL = 5;
+const BREEDER_LEVEL_FACTOR = 0.82; // レベルごとに待機時間が82%に短縮
+const AGENCY_BASE_INTERVAL = 14000;
+const AGENCY_MAX_LEVEL = 5;
+const AGENCY_LEVEL_FACTOR = 0.82;
+
+function breederInterval(cst){
+  return Math.round(BREEDER_BASE_INTERVAL * Math.pow(BREEDER_LEVEL_FACTOR, Math.max(0,(cst.breederLevel||1)-1)));
+}
+function agencyInterval(cst){
+  return Math.round(AGENCY_BASE_INTERVAL * Math.pow(AGENCY_LEVEL_FACTOR, Math.max(0,(cst.agencyLevel||1)-1)));
+}
+function breederUpgradeCost(){
+  const c = cs();
+  return Math.floor(6000 * Math.pow(2, (c.breederLevel||1)-1) * contMeta().costMult);
+}
+function agencyUpgradeCost(){
+  const c = cs();
+  return Math.floor(6000 * Math.pow(2, (c.agencyLevel||1)-1) * contMeta().costMult);
+}
 
 function pickaxeMult(){
   const owned = state.items?.pickaxes || {};
@@ -1182,7 +1204,19 @@ function buyBreeder(){
   spendCurrency(c);
   cst.breederUnlocked = true;
   cst.breederEnabled = true;
+  cst.breederLevel = 1;
+  cst.breederTimer = breederInterval(cst);
   addLog(`🧑‍🌾 ブリーダーを雇用しました`);
+  renderArena(); updateHeader();
+}
+function buyBreederUpgrade(){
+  const cst = cs();
+  if(!cst.breederUnlocked || cst.breederLevel >= BREEDER_MAX_LEVEL) return;
+  const c = breederUpgradeCost();
+  if(!hasCurrency(c)) return;
+  spendCurrency(c);
+  cst.breederLevel++;
+  addLog(`🧑‍🌾 ブリーダーを強化しました (Lv.${cst.breederLevel}／待機${(breederInterval(cst)/1000).toFixed(1)}秒)`);
   renderArena(); updateHeader();
 }
 function toggleBreeder(){
@@ -1292,7 +1326,19 @@ function buyAgency(){
   spendCurrency(c);
   cst.agencyUnlocked = true;
   cst.agencyEnabled = true;
+  cst.agencyLevel = 1;
+  cst.agencyTimer = agencyInterval(cst);
   addLog(`🏢 派遣会社を設立しました`);
+  renderAdventure(); updateHeader();
+}
+function buyAgencyUpgrade(){
+  const cst = cs();
+  if(!cst.agencyUnlocked || cst.agencyLevel >= AGENCY_MAX_LEVEL) return;
+  const c = agencyUpgradeCost();
+  if(!hasCurrency(c)) return;
+  spendCurrency(c);
+  cst.agencyLevel++;
+  addLog(`🏢 派遣会社を強化しました (Lv.${cst.agencyLevel}／待機${(agencyInterval(cst)/1000).toFixed(1)}秒)`);
   renderAdventure(); updateHeader();
 }
 function toggleAgency(){
@@ -1329,6 +1375,28 @@ function agencyTick(){
   selectedAdventureMon = best.id;
   dispatchAdventure(quest.key);
   selectedAdventureMon = prev;
+}
+
+/* ブリーダー・派遣会社は「レベルに応じて待機時間が短くなる」ため、
+   固定setIntervalではなく1秒ごとのカウントダウンで管理する */
+function automationCooldownTick(){
+  const cst = cs();
+  if(cst.breederUnlocked && cst.breederEnabled){
+    if(cst.breederTimer == null) cst.breederTimer = breederInterval(cst);
+    cst.breederTimer -= 1000;
+    if(cst.breederTimer <= 0){
+      breederTick();
+      cst.breederTimer = breederInterval(cst);
+    }
+  }
+  if(cst.agencyUnlocked && cst.agencyEnabled){
+    if(cst.agencyTimer == null) cst.agencyTimer = agencyInterval(cst);
+    cst.agencyTimer -= 1000;
+    if(cst.agencyTimer <= 0){
+      agencyTick();
+      cst.agencyTimer = agencyInterval(cst);
+    }
+  }
 }
 
 /* =========================================================
@@ -1915,14 +1983,14 @@ function renderArena(){
         <div class="shop-item">
           <div class="info">
             <div class="name">🧑‍🌾 ブリーダーを雇う</div>
-            <div class="desc">指定したランクの大会に、一番強いモンスターを定期的（約12秒ごと）に自動で出場させます。</div>
+            <div class="desc">指定したランクの大会に、一番強いモンスターを定期的（約${(BREEDER_BASE_INTERVAL/1000).toFixed(0)}秒ごと）に自動で出場させます。</div>
           </div>
           <button class="buy-btn" id="buyBreederBtn" ${hasCurrency(breederCost())?"":"disabled"}>雇う<br>${costLabel(breederCost())}</button>
         </div>
       ` : `
         <div class="toggle-row">
           <div>
-            <div style="font-weight:700;font-size:13px;">🧑‍🌾 自動出場</div>
+            <div style="font-weight:700;font-size:13px;">🧑‍🌾 自動出場（Lv.${cst.breederLevel} ／ 待機${(breederInterval(cst)/1000).toFixed(1)}秒）</div>
             <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、下で選んだランクに最強のモンスターを自動出場させます。</div>
           </div>
           <div class="toggle-switch ${cst.breederEnabled?'on':''}" id="breederToggle"><div class="knob"></div></div>
@@ -1930,6 +1998,13 @@ function renderArena(){
         <div style="margin-top:10px;font-size:11px;color:var(--text-dim);">対象ランク：</div>
         <div class="select-mon-row" style="margin-top:6px;">
           ${meta.ranks.map(r=>`<div class="select-chip ${cst.breederRank===r.key?'selected':''}" data-breeder-rank="${r.key}">${r.label||r.key}</div>`).join("")}
+        </div>
+        <div class="shop-item" style="margin-top:10px;">
+          <div class="info">
+            <div class="name">⏱️ 待機時間短縮</div>
+            <div class="desc">${cst.breederLevel>=BREEDER_MAX_LEVEL ? "最大レベルに到達しています" : `Lv.${cst.breederLevel}→${cst.breederLevel+1}（待機 ${(breederInterval(cst)/1000).toFixed(1)}秒 → ${(Math.round(BREEDER_BASE_INTERVAL*Math.pow(BREEDER_LEVEL_FACTOR,cst.breederLevel))/1000).toFixed(1)}秒）`}</div>
+          </div>
+          <button class="buy-btn" id="buyBreederUpgradeBtn" ${(cst.breederLevel<BREEDER_MAX_LEVEL && hasCurrency(breederUpgradeCost()))?"":"disabled"}>${cst.breederLevel>=BREEDER_MAX_LEVEL?"MAX":`強化<br>${costLabel(breederUpgradeCost())}`}</button>
         </div>
       `}
     </div>
@@ -1949,6 +2024,9 @@ function renderArena(){
   }
   if(document.getElementById("breederToggle")){
     document.getElementById("breederToggle").onclick = toggleBreeder;
+  }
+  if(document.getElementById("buyBreederUpgradeBtn")){
+    document.getElementById("buyBreederUpgradeBtn").onclick = buyBreederUpgrade;
   }
   document.querySelectorAll(".select-chip[data-breeder-rank]").forEach(el=>{
     el.onclick = ()=> setBreederRank(el.dataset.breederRank);
@@ -2005,17 +2083,24 @@ function renderAdventure(){
         <div class="shop-item">
           <div class="info">
             <div class="name">🏢 派遣会社を設立</div>
-            <div class="desc">最も強いモンスターを自動でクエストに派遣します（約14秒ごと）。ブリーダーの対象モンスターは除外されます。</div>
+            <div class="desc">最も強いモンスターを自動でクエストに派遣します（約${(AGENCY_BASE_INTERVAL/1000).toFixed(0)}秒ごと）。ブリーダーの対象モンスターは除外されます。</div>
           </div>
           <button class="buy-btn" id="buyAgencyBtn" ${hasCurrency(agencyCost())?"":"disabled"}>設立<br>${costLabel(agencyCost())}</button>
         </div>
       ` : `
         <div class="toggle-row">
           <div>
-            <div style="font-weight:700;font-size:13px;">🏢 自動派遣</div>
+            <div style="font-weight:700;font-size:13px;">🏢 自動派遣（Lv.${cst.agencyLevel} ／ 待機${(agencyInterval(cst)/1000).toFixed(1)}秒）</div>
             <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、最強のモンスター（ブリーダーの対象を除く）を難易度に見合ったクエストへ自動派遣します。</div>
           </div>
           <div class="toggle-switch ${cst.agencyEnabled?'on':''}" id="agencyToggle"><div class="knob"></div></div>
+        </div>
+        <div class="shop-item" style="margin-top:10px;">
+          <div class="info">
+            <div class="name">⏱️ 待機時間短縮</div>
+            <div class="desc">${cst.agencyLevel>=AGENCY_MAX_LEVEL ? "最大レベルに到達しています" : `Lv.${cst.agencyLevel}→${cst.agencyLevel+1}（待機 ${(agencyInterval(cst)/1000).toFixed(1)}秒 → ${(Math.round(AGENCY_BASE_INTERVAL*Math.pow(AGENCY_LEVEL_FACTOR,cst.agencyLevel))/1000).toFixed(1)}秒）`}</div>
+          </div>
+          <button class="buy-btn" id="buyAgencyUpgradeBtn" ${(cst.agencyLevel<AGENCY_MAX_LEVEL && hasCurrency(agencyUpgradeCost()))?"":"disabled"}>${cst.agencyLevel>=AGENCY_MAX_LEVEL?"MAX":`強化<br>${costLabel(agencyUpgradeCost())}`}</button>
         </div>
       `}
     </div>
@@ -2033,6 +2118,9 @@ function renderAdventure(){
   });
   if(document.getElementById("buyAgencyBtn")){
     document.getElementById("buyAgencyBtn").onclick = buyAgency;
+  }
+  if(document.getElementById("buyAgencyUpgradeBtn")){
+    document.getElementById("buyAgencyUpgradeBtn").onclick = buyAgencyUpgrade;
   }
   if(document.getElementById("agencyToggle")){
     document.getElementById("agencyToggle").onclick = toggleAgency;
@@ -2132,8 +2220,12 @@ function normalizeState(){
     cst.breederUnlocked = cst.breederUnlocked || false;
     cst.breederEnabled = cst.breederEnabled || false;
     cst.breederRank = cst.breederRank || null;
+    cst.breederLevel = cst.breederLevel || (cst.breederUnlocked ? 1 : 0);
+    cst.breederTimer = (typeof cst.breederTimer === "number") ? cst.breederTimer : null;
     cst.agencyUnlocked = cst.agencyUnlocked || false;
     cst.agencyEnabled = cst.agencyEnabled || false;
+    cst.agencyLevel = cst.agencyLevel || (cst.agencyUnlocked ? 1 : 0);
+    cst.agencyTimer = (typeof cst.agencyTimer === "number") ? cst.agencyTimer : null;
     cst.globalMult = cst.globalMult || 1.0;
     cst.arenaWinnings = cst.arenaWinnings || 0;
     cst.monsters = (cst.monsters || []).map(m=>{
@@ -2215,20 +2307,16 @@ function init(){
   setInterval(priestTick, 8000);
   setInterval(autoCombineTick, 10000);
   setInterval(converterTick, 4000);
-  setInterval(breederTick, 12000);
-  setInterval(agencyTick, 14000);
+  setInterval(automationCooldownTick, 1000);
   setInterval(()=>saveGame(true), 10000);
 }
 
-/* ズーム完全防止（iOS Safariはuser-scalable=noを無視することがあるため） */
+/* ズーム完全防止（iOS Safariはuser-scalable=noを無視することがあるため）
+   ※連打を殺さないよう、シングルタップの二度押し(ダブルタップズーム)監視は行わない。
+     touch-action:manipulation(CSS)だけで十分にダブルタップズームは防げるため、
+     ここではピンチズーム（2本指操作）だけをJSで確実に抑止する。 */
 document.addEventListener("gesturestart", (e)=>e.preventDefault());
 document.addEventListener("gesturechange", (e)=>e.preventDefault());
-let _lastTouchEnd = 0;
-document.addEventListener("touchend", (e)=>{
-  const now = Date.now();
-  if(now - _lastTouchEnd <= 350) e.preventDefault();
-  _lastTouchEnd = now;
-}, { passive:false });
 document.addEventListener("touchmove", (e)=>{
   if(e.touches.length > 1) e.preventDefault();
 }, { passive:false });
