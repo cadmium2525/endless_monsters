@@ -376,7 +376,10 @@
           <button class="continent-badge" id="continentBtn">FAMBU大陸 ▾</button>
           <span class="badge" id="meijinBadge" style="display:none;">名人</span>
         </div>
-        <button class="codex-open-btn" id="openCodexBtn">📖 図鑑</button>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button class="codex-open-btn" id="openBagBtn">🎒 道具袋</button>
+          <button class="codex-open-btn" id="openCodexBtn">📖 図鑑</button>
+        </div>
       </div>
       <div class="stats-row">
         <div class="stat-chip gold"><span class="k">ゴールド</span><span class="v" id="goldVal">0</span></div>
@@ -595,6 +598,8 @@ function freshContinentState(contKey){
     monsters: [], codex: {}, arenaWinnings: 0,
     autoCombineUnlocked:false, autoCombineEnabled:false, useFruitForCombine:false, autoCombineUseFruit:false,
     converters:0, converterEnabled:false,
+    breederUnlocked:false, breederEnabled:false, breederRank:null,
+    agencyUnlocked:false, agencyEnabled:false,
     globalMult: 1.0,
   };
 }
@@ -718,6 +723,8 @@ function trainingCost(){ const c=cs(), m=contMeta(); return Math.floor(80 * Math
 function farmExpandCost(){ const c=cs(), m=contMeta(); return Math.floor(300 * Math.pow(1.6, c.farmCapacity - m.startFarmCapacity) * m.costMult); }
 function autoCombineDeviceCost(){ return Math.floor(3000 * contMeta().costMult); }
 function converterCost(){ const c=cs(), m=contMeta(); return Math.floor(CONVERTER_UNIT_COST_BASE * Math.pow(1.6, c.converters) * m.costMult); }
+function breederCost(){ return Math.floor(4000 * contMeta().costMult); }
+function agencyCost(){ return Math.floor(4000 * contMeta().costMult); }
 
 function pickaxeMult(){
   const owned = state.items?.pickaxes || {};
@@ -1095,13 +1102,14 @@ function getRankForMonster(m){
   return best;
 }
 
-function enterTournament(rankKey){
+function performTournamentEntry(monId, rankKey){
   const cst = cs(), meta = contMeta();
-  const m = cst.monsters.find(x=>x.id===selectedTournamentMon);
-  if(!m || m.status!=="active" || m.lifespan<=0) return;
+  const m = cst.monsters.find(x=>x.id===monId);
+  if(!m || m.status!=="active" || m.lifespan<=0) return false;
   const rank = meta.ranks.find(r=>r.key===rankKey);
+  if(!rank) return false;
   const sum = m.power + m.wisdom;
-  if(sum < rank.req){ toast("ステータスが不足しています"); return; }
+  if(sum < rank.req) return false;
 
   m.lifespan -= 1;
   if(m.lifespan<=0){ m.lifespan=0; m.status="hibernating"; }
@@ -1125,7 +1133,7 @@ function enterTournament(rankKey){
           state.isImaChampion = true;
           toast("🌌 異世界の覇者に認定されました！");
         }
-        if(state.isekaiClearCount >= ANCIENT_UNLOCK_ISEKAI_CLEARS){
+        if(state.isekaiClearCount === ANCIENT_UNLOCK_ISEKAI_CLEARS){
           toast(`🦴 古代FAMBU大陸への渡航条件を満たしました！（異世界ランク制覇 ${state.isekaiClearCount}回）`);
         }
       } else if(state.currentContinent==="ancient"){
@@ -1134,7 +1142,7 @@ function enterTournament(rankKey){
           state.isAncientChampion = true;
           toast("🦖 古代の覇者に認定されました！");
         }
-        if(state.tyranoClearCount >= ANCIENT_MIN_UNLOCK_TYRANO_CLEARS){
+        if(state.tyranoClearCount === ANCIENT_MIN_UNLOCK_TYRANO_CLEARS){
           toast(`🔮 古代MIn大陸への渡航条件を満たしました！（ティラノランク制覇 ${state.tyranoClearCount}回）`);
         }
       } else {
@@ -1149,9 +1157,64 @@ function enterTournament(rankKey){
     addLog(`💥 ${m.name}が${dispName}ランク大会で敗北...`);
   }
   if(m.status==="hibernating") addLog(`💤 ${m.name}が寿命を迎え冬眠状態になりました`);
+  return true;
+}
 
+function enterTournament(rankKey){
+  const cst = cs(), meta = contMeta();
+  const m = cst.monsters.find(x=>x.id===selectedTournamentMon);
+  if(!m || m.status!=="active" || m.lifespan<=0) return;
+  const rank = meta.ranks.find(r=>r.key===rankKey);
+  const sum = m.power + m.wisdom;
+  if(sum < rank.req){ toast("ステータスが不足しています"); return; }
+
+  performTournamentEntry(selectedTournamentMon, rankKey);
   updateHeader();
+  if(state.currentTab==="arena") renderArena();
+}
+
+/* =========================================================
+   Actions: breeder（大会自動化）
+========================================================= */
+function buyBreeder(){
+  const cst = cs(); const c = breederCost();
+  if(!hasCurrency(c) || cst.breederUnlocked) return;
+  spendCurrency(c);
+  cst.breederUnlocked = true;
+  cst.breederEnabled = true;
+  addLog(`🧑‍🌾 ブリーダーを雇用しました`);
+  renderArena(); updateHeader();
+}
+function toggleBreeder(){
+  const cst = cs();
+  if(!cst.breederUnlocked) return;
+  cst.breederEnabled = !cst.breederEnabled;
   renderArena();
+}
+function setBreederRank(rankKey){
+  const cst = cs();
+  if(!cst.breederUnlocked) return;
+  cst.breederRank = rankKey;
+  renderArena();
+}
+function strongestEligibleMonster(cst, rank, excludeId){
+  const pool = cst.monsters.filter(m=>
+    m.status==="active" && m.lifespan>0 && m.id!==excludeId && (m.power+m.wisdom)>=rank.req
+  );
+  if(pool.length===0) return null;
+  pool.sort((a,b)=>(b.power+b.wisdom)-(a.power+a.wisdom));
+  return pool[0];
+}
+function breederTick(){
+  const cst = cs(), meta = contMeta();
+  if(!cst.breederUnlocked || !cst.breederEnabled || !cst.breederRank) return;
+  const rank = meta.ranks.find(r=>r.key===cst.breederRank);
+  if(!rank) return;
+  const best = strongestEligibleMonster(cst, rank, null);
+  if(!best) return;
+  performTournamentEntry(best.id, cst.breederRank);
+  updateHeader();
+  if(state.currentTab==="arena") renderArena();
 }
 
 /* =========================================================
@@ -1217,7 +1280,55 @@ function dispatchAdventure(questKey){
   if(m.status==="hibernating") addLog(`💤 ${m.name}が寿命を迎え冬眠状態になりました`);
 
   updateHeader();
+  if(state.currentTab==="adventure") renderAdventure();
+}
+
+/* =========================================================
+   Actions: agency（冒険自動化・派遣会社）
+========================================================= */
+function buyAgency(){
+  const cst = cs(); const c = agencyCost();
+  if(!hasCurrency(c) || cst.agencyUnlocked) return;
+  spendCurrency(c);
+  cst.agencyUnlocked = true;
+  cst.agencyEnabled = true;
+  addLog(`🏢 派遣会社を設立しました`);
+  renderAdventure(); updateHeader();
+}
+function toggleAgency(){
+  const cst = cs();
+  if(!cst.agencyUnlocked) return;
+  cst.agencyEnabled = !cst.agencyEnabled;
   renderAdventure();
+}
+function breederExcludedMonsterId(cst, meta){
+  if(!cst.breederUnlocked || !cst.breederEnabled || !cst.breederRank) return null;
+  const rank = meta.ranks.find(r=>r.key===cst.breederRank);
+  if(!rank) return null;
+  const best = strongestEligibleMonster(cst, rank, null);
+  return best ? best.id : null;
+}
+function bestQuestForMonster(meta, m){
+  let quest = meta.quests[0];
+  for(const q of meta.quests){ if((m.power+m.wisdom) >= q.req) quest = q; }
+  return quest;
+}
+function agencyTick(){
+  if(!state.isMeijin) return;
+  const cst = cs(), meta = contMeta();
+  if(!cst.agencyUnlocked || !cst.agencyEnabled) return;
+  const excludeId = breederExcludedMonsterId(cst, meta);
+  const candidates = cst.monsters.filter(m=>
+    m.status==="active" && m.lifespan>0 && m.id!==excludeId
+  );
+  if(candidates.length===0) return;
+  candidates.sort((a,b)=>(b.power+b.wisdom)-(a.power+a.wisdom));
+  const best = candidates[0];
+  const quest = bestQuestForMonster(meta, best);
+  const prev = selectedAdventureMon;
+  selectedAdventureMon = best.id;
+  dispatchAdventure(quest.key);
+  selectedAdventureMon = prev;
 }
 
 /* =========================================================
@@ -1258,11 +1369,26 @@ function travelTo(cont){
 /* =========================================================
    Rendering: header
 ========================================================= */
+const TITLES = [
+  { key:"meijin",             label:"名人",       check: ()=>state.isMeijin },
+  { key:"ima_champion",       label:"異界の覇者", check: ()=>state.isImaChampion },
+  { key:"ancient_champion",   label:"古代の覇者", check: ()=>state.isAncientChampion },
+  { key:"ancientmin_champion",label:"創世の覇者", check: ()=>state.isAncientMinChampion },
+];
+function currentTitle(){
+  let best = null;
+  for(const t of TITLES){ if(t.check()) best = t; }
+  return best;
+}
+
 function updateHeader(){
   document.getElementById("goldVal").textContent = fmt(state.gold);
   document.getElementById("shardVal").textContent = fmt(state.shards);
   document.getElementById("multVal").textContent = "x"+cs().globalMult.toFixed(2);
-  document.getElementById("meijinBadge").style.display = state.isMeijin ? "inline-block" : "none";
+  const title = currentTitle();
+  const badge = document.getElementById("meijinBadge");
+  if(title){ badge.style.display = "inline-block"; badge.textContent = title.label; }
+  else { badge.style.display = "none"; }
   document.getElementById("continentBtn").textContent = CONTINENTS[state.currentContinent].name + " ▾";
 }
 
@@ -1568,6 +1694,64 @@ function openCodex(){
   document.getElementById("modalRoot").innerHTML = renderCodexModal();
   bindCodexModalEvents();
 }
+
+function renderBagModal(){
+  return `
+    <div class="modal-overlay" id="bagOverlay">
+      <div class="modal-sheet">
+        <div class="modal-head">
+          <h2>道具袋</h2>
+          <button class="modal-close-btn" id="closeBagBtn">✕</button>
+        </div>
+        <div class="shop-grid">
+          ${PICKAXE_TIERS.map(t=>`
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">${t.emoji} ${t.name}</div>
+              <div class="desc">${CONTINENTS[t.dropContinent].name}の冒険で入手／クリック＋自動どちらも+${(t.mult*100).toFixed(0)}%ずつ</div>
+            </div>
+            <div style="font-weight:700;color:var(--ore);">${state.items.pickaxes[t.key]||0}個</div>
+          </div>`).join("")}
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">ツルハシ合計倍率</div>
+              <div class="desc">全ツルハシの合計で採掘速度が上昇（クリック・自動とも）</div>
+            </div>
+            <div style="font-weight:700;color:var(--ore);">x${pickaxeMult().toFixed(2)}</div>
+          </div>
+          ${GRIP_TIERS.map(t=>`
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">${t.emoji} ${t.name}</div>
+              <div class="desc">${CONTINENTS[t.dropContinent].name}の冒険で入手／「岩を掘る」クリックのみ+${(t.mult*100).toFixed(0)}%ずつ（自動採掘には効果なし）</div>
+            </div>
+            <div style="font-weight:700;color:var(--good);">${state.items.grips[t.key]||0}個</div>
+          </div>`).join("")}
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">グリップ合計倍率</div>
+              <div class="desc">クリックだけがさらに強化される（連打が報われる）</div>
+            </div>
+            <div style="font-weight:700;color:var(--good);">x${gripMult().toFixed(2)}</div>
+          </div>
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">🍎 覚醒の実</div>
+              <div class="desc">「ファーム」タブの合体（手動・自動とも）で使用すると幻の血統が出やすくなる</div>
+            </div>
+            <div style="font-weight:700;color:var(--mystic);">${state.items.fruits}個</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function openBag(){
+  document.getElementById("modalRoot").innerHTML = renderBagModal();
+  document.getElementById("closeBagBtn").onclick = closeModal;
+  document.getElementById("bagOverlay").onclick = (e)=>{ if(e.target.id==="bagOverlay") closeModal(); };
+}
+
 function closeModal(){
   document.getElementById("modalRoot").innerHTML = "";
 }
@@ -1726,15 +1910,48 @@ function renderArena(){
       </div>
     </div>
     <div class="panel">
+      <h2>ブリーダー（大会自動化）</h2>
+      ${!cst.breederUnlocked ? `
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🧑‍🌾 ブリーダーを雇う</div>
+            <div class="desc">指定したランクの大会に、一番強いモンスターを定期的（約12秒ごと）に自動で出場させます。</div>
+          </div>
+          <button class="buy-btn" id="buyBreederBtn" ${hasCurrency(breederCost())?"":"disabled"}>雇う<br>${costLabel(breederCost())}</button>
+        </div>
+      ` : `
+        <div class="toggle-row">
+          <div>
+            <div style="font-weight:700;font-size:13px;">🧑‍🌾 自動出場</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、下で選んだランクに最強のモンスターを自動出場させます。</div>
+          </div>
+          <div class="toggle-switch ${cst.breederEnabled?'on':''}" id="breederToggle"><div class="knob"></div></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--text-dim);">対象ランク：</div>
+        <div class="select-mon-row" style="margin-top:6px;">
+          ${meta.ranks.map(r=>`<div class="select-chip ${cst.breederRank===r.key?'selected':''}" data-breeder-rank="${r.key}">${r.label||r.key}</div>`).join("")}
+        </div>
+      `}
+    </div>
+    <div class="panel">
       <h2>ログ</h2>
       <div class="log-box">${state.log.slice(-8).map(l=>`<div>${l}</div>`).join("")}</div>
     </div>
   `;
-  document.querySelectorAll(".select-chip").forEach(el=>{
+  document.querySelectorAll(".select-chip[data-mid]").forEach(el=>{
     el.onclick = ()=>{ selectedTournamentMon = Number(el.dataset.mid); renderArena(); };
   });
   document.querySelectorAll(".enter-btn").forEach(el=>{
     el.onclick = ()=> enterTournament(el.dataset.rank);
+  });
+  if(document.getElementById("buyBreederBtn")){
+    document.getElementById("buyBreederBtn").onclick = buyBreeder;
+  }
+  if(document.getElementById("breederToggle")){
+    document.getElementById("breederToggle").onclick = toggleBreeder;
+  }
+  document.querySelectorAll(".select-chip[data-breeder-rank]").forEach(el=>{
+    el.onclick = ()=> setBreederRank(el.dataset.breederRank);
   });
   applyStickyOffset(document.getElementById("arenaSelectPanel"));
 }
@@ -1754,49 +1971,6 @@ function renderAdventure(){
     .filter(m=>m.status==="active" && m.lifespan>0)
     .sort((a,b)=>(b.power+b.wisdom)-(a.power+a.wisdom));
   document.getElementById("mainArea").innerHTML = `
-    <div class="panel">
-      <h2>道具袋</h2>
-      <div class="shop-grid">
-        ${PICKAXE_TIERS.map(t=>`
-        <div class="shop-item">
-          <div class="info">
-            <div class="name">${t.emoji} ${t.name}</div>
-            <div class="desc">${CONTINENTS[t.dropContinent].name}の冒険で入手／クリック＋自動どちらも+${(t.mult*100).toFixed(0)}%ずつ</div>
-          </div>
-          <div style="font-weight:700;color:var(--ore);">${state.items.pickaxes[t.key]||0}個</div>
-        </div>`).join("")}
-        <div class="shop-item">
-          <div class="info">
-            <div class="name">ツルハシ合計倍率</div>
-            <div class="desc">全ツルハシの合計で採掘速度が上昇（クリック・自動とも）</div>
-          </div>
-          <div style="font-weight:700;color:var(--ore);">x${pickaxeMult().toFixed(2)}</div>
-        </div>
-        ${GRIP_TIERS.map(t=>`
-        <div class="shop-item">
-          <div class="info">
-            <div class="name">${t.emoji} ${t.name}</div>
-            <div class="desc">${CONTINENTS[t.dropContinent].name}の冒険で入手／「岩を掘る」クリックのみ+${(t.mult*100).toFixed(0)}%ずつ（自動採掘には効果なし）</div>
-          </div>
-          <div style="font-weight:700;color:var(--good);">${state.items.grips[t.key]||0}個</div>
-        </div>`).join("")}
-        <div class="shop-item">
-          <div class="info">
-            <div class="name">グリップ合計倍率</div>
-            <div class="desc">クリックだけがさらに強化される（連打が報われる）</div>
-          </div>
-          <div style="font-weight:700;color:var(--good);">x${gripMult().toFixed(2)}</div>
-        </div>
-        <div class="shop-item">
-          <div class="info">
-            <div class="name">🍎 覚醒の実</div>
-            <div class="desc">「ファーム」タブの合体（手動・自動とも）で使用すると幻の血統が出やすくなる</div>
-          </div>
-          <div style="font-weight:700;color:var(--mystic);">${state.items.fruits}個</div>
-        </div>
-      </div>
-    </div>
-
     <div class="panel">
       <h2>派遣するモンスターを選択（${meta.name}）</h2>
       ${active.length===0 ? `<div class="empty-msg">派遣可能なモンスターがいません（活動中かつ寿命が残っている必要があります）</div>` : `
@@ -1822,7 +1996,28 @@ function renderAdventure(){
           </div>`;
         }).join("")}
       </div>
-      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;">※必要ステ未満でも派遣は可能ですが成功率が下がります。成功時はまれに派遣モンスターの血統専用アイテムを拾います。</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;">※必要ステ未満でも派遣は可能ですが成功率が下がります。成功時はまれに派遣モンスターの血統専用アイテムを拾います。道具は右上の🎒ボタンから確認できます。</div>
+    </div>
+
+    <div class="panel">
+      <h2>派遣会社（冒険自動化）</h2>
+      ${!cst.agencyUnlocked ? `
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🏢 派遣会社を設立</div>
+            <div class="desc">最も強いモンスターを自動でクエストに派遣します（約14秒ごと）。ブリーダーの対象モンスターは除外されます。</div>
+          </div>
+          <button class="buy-btn" id="buyAgencyBtn" ${hasCurrency(agencyCost())?"":"disabled"}>設立<br>${costLabel(agencyCost())}</button>
+        </div>
+      ` : `
+        <div class="toggle-row">
+          <div>
+            <div style="font-weight:700;font-size:13px;">🏢 自動派遣</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、最強のモンスター（ブリーダーの対象を除く）を難易度に見合ったクエストへ自動派遣します。</div>
+          </div>
+          <div class="toggle-switch ${cst.agencyEnabled?'on':''}" id="agencyToggle"><div class="knob"></div></div>
+        </div>
+      `}
     </div>
 
     <div class="panel">
@@ -1836,6 +2031,12 @@ function renderAdventure(){
   document.querySelectorAll(".enter-btn").forEach(el=>{
     el.onclick = ()=> dispatchAdventure(el.dataset.quest);
   });
+  if(document.getElementById("buyAgencyBtn")){
+    document.getElementById("buyAgencyBtn").onclick = buyAgency;
+  }
+  if(document.getElementById("agencyToggle")){
+    document.getElementById("agencyToggle").onclick = toggleAgency;
+  }
 }
 
 const TAB_RENDERERS = {
@@ -1928,6 +2129,11 @@ function normalizeState(){
     cst.autoCombineEnabled = cst.autoCombineEnabled || false;
     cst.useFruitForCombine = cst.useFruitForCombine || false;
     cst.autoCombineUseFruit = cst.autoCombineUseFruit || false;
+    cst.breederUnlocked = cst.breederUnlocked || false;
+    cst.breederEnabled = cst.breederEnabled || false;
+    cst.breederRank = cst.breederRank || null;
+    cst.agencyUnlocked = cst.agencyUnlocked || false;
+    cst.agencyEnabled = cst.agencyEnabled || false;
     cst.globalMult = cst.globalMult || 1.0;
     cst.arenaWinnings = cst.arenaWinnings || 0;
     cst.monsters = (cst.monsters || []).map(m=>{
@@ -1998,6 +2204,7 @@ function init(){
   document.getElementById("loadBtn").onclick = loadGame;
   document.getElementById("resetBtn").onclick = resetGame;
   document.getElementById("openCodexBtn").onclick = openCodex;
+  document.getElementById("openBagBtn").onclick = openBag;
   document.getElementById("continentBtn").onclick = openTravelModal;
 
   updateHeader();
@@ -2008,8 +2215,23 @@ function init(){
   setInterval(priestTick, 8000);
   setInterval(autoCombineTick, 10000);
   setInterval(converterTick, 4000);
+  setInterval(breederTick, 12000);
+  setInterval(agencyTick, 14000);
   setInterval(()=>saveGame(true), 10000);
 }
+
+/* ズーム完全防止（iOS Safariはuser-scalable=noを無視することがあるため） */
+document.addEventListener("gesturestart", (e)=>e.preventDefault());
+document.addEventListener("gesturechange", (e)=>e.preventDefault());
+let _lastTouchEnd = 0;
+document.addEventListener("touchend", (e)=>{
+  const now = Date.now();
+  if(now - _lastTouchEnd <= 350) e.preventDefault();
+  _lastTouchEnd = now;
+}, { passive:false });
+document.addEventListener("touchmove", (e)=>{
+  if(e.touches.length > 1) e.preventDefault();
+}, { passive:false });
 
 init();
 
