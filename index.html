@@ -373,7 +373,7 @@
       <div class="title-row">
         <div class="title-left">
           <h1>⛏ 円盤石鉱山</h1>
-          <button class="continent-badge" id="continentBtn">FIMBA大陸 ▾</button>
+          <button class="continent-badge" id="continentBtn">FAMBU大陸 ▾</button>
           <span class="badge" id="meijinBadge" style="display:none;">名人</span>
         </div>
         <button class="codex-open-btn" id="openCodexBtn">📖 図鑑</button>
@@ -466,9 +466,9 @@ const QUESTS_FIMBA = [
   { key:"secret", name:"秘境の祭壇", desc:"名人向けの高難度クエスト。",     req:160, lifeCost:4, goldRange:[500,900], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
 ];
 const QUESTS_IMA = [
-  { key:"near",   name:"衛星軌道の遺跡", desc:"IMaでの手頃な難易度。", req:72,   lifeCost:2, goldRange:[300,550],   pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"near",   name:"衛星軌道の遺跡", desc:"MInでの手頃な難易度。", req:72,   lifeCost:2, goldRange:[300,550],   pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
   { key:"deep",   name:"次元の狭間",     desc:"歯応えのある中難度クエスト。", req:162, lifeCost:3, goldRange:[700,1300],  pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
-  { key:"secret", name:"虚空の祭壇",     desc:"IMaの高難度クエスト。", req:288,  lifeCost:4, goldRange:[1800,3200], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+  { key:"secret", name:"虚空の祭壇",     desc:"MInの高難度クエスト。", req:288,  lifeCost:4, goldRange:[1800,3200], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
 ];
 
 const BLOODLINES_ANCIENT = [
@@ -494,14 +494,42 @@ const RANKS_ANCIENT = [
   { key:"TYRANO",  label:"ティラノ", req:1600, reward:[35000,55000] },
 ];
 const QUESTS_ANCIENT = [
-  { key:"near",   name:"太古の巣穴",   desc:"古代FIMBAでの手頃な難易度。", req:115, lifeCost:2, goldRange:[600,1000],  pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"near",   name:"太古の巣穴",   desc:"古代FAMBUでの手頃な難易度。", req:115, lifeCost:2, goldRange:[600,1000],  pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
   { key:"deep",   name:"化石の回廊",   desc:"歯応えのある中難度クエスト。", req:260, lifeCost:3, goldRange:[1500,2600], pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
-  { key:"secret", name:"原初の祭壇",   desc:"古代FIMBAの高難度クエスト。", req:460, lifeCost:4, goldRange:[3500,6000], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+  { key:"secret", name:"原初の祭壇",   desc:"古代FAMBUの高難度クエスト。", req:460, lifeCost:4, goldRange:[3500,6000], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+];
+
+const BLOODLINES_ANCIENT_MIN = [
+  { key:"meteoriron",  name:"隕鉄",     emoji:"🌠", powerRange:[85,140],  wisdomRange:[20,45],  lifeRange:[70,95],   weight:15 },
+  { key:"starshell",   name:"星甲",     emoji:"🛡️", powerRange:[20,45],   wisdomRange:[85,140], lifeRange:[85,115],  weight:15 },
+  { key:"comet",       name:"彗星",     emoji:"☄️", powerRange:[45,80],   wisdomRange:[45,80],  lifeRange:[65,90],   weight:15 },
+  { key:"novaflame",   name:"極炎",     emoji:"🔆", powerRange:[95,155],  wisdomRange:[10,35],  lifeRange:[55,78],   weight:15 },
+  { key:"deepspace",   name:"深宇宙",   emoji:"🪐", powerRange:[25,55],   wisdomRange:[95,150], lifeRange:[95,130],  weight:15 },
+  { key:"gravity",     name:"重力",     emoji:"🌀", powerRange:[65,105],  wisdomRange:[65,105], lifeRange:[60,85],   weight:15 },
+  { key:"primallight", name:"太古の光", emoji:"✨", powerRange:[80,130],  wisdomRange:[80,130], lifeRange:[68,98],   weight:8  },
+  { key:"chaos",       name:"混沌",     emoji:"🔮", powerRange:[140,220], wisdomRange:[140,220],lifeRange:[115,155], weight:2  },
+];
+
+const RANKS_ANCIENT_MIN = [
+  { key:"E",       req:69,   reward:[150,280] },
+  { key:"D",       req:162,  reward:[350,650] },
+  { key:"C",       req:277,  reward:[750,1300] },
+  { key:"B",       req:438,  reward:[1700,2800] },
+  { key:"A",       req:645,  reward:[3400,5400] },
+  { key:"S",       req:922,  reward:[6800,10800] },
+  { key:"SS",      req:1290, reward:[13000,20000] },
+  { key:"MYTH",    label:"神話", req:1840, reward:[28000,44000] },
+  { key:"GENESIS", label:"創世", req:2560, reward:[65000,100000] },
+];
+const QUESTS_ANCIENT_MIN = [
+  { key:"near",   name:"星屑の巣",     desc:"古代MInでの手頃な難易度。", req:184, lifeCost:2, goldRange:[1200,2000], pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"deep",   name:"崩壊した星系", desc:"歯応えのある中難度クエスト。", req:416, lifeCost:3, goldRange:[3000,5200], pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
+  { key:"secret", name:"混沌の祭壇",   desc:"古代MInの高難度クエスト。", req:736, lifeCost:4, goldRange:[7000,12000], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
 ];
 
 const CONTINENTS = {
   fimba: {
-    key:"fimba", name:"FIMBA大陸", currency:"gold",
+    key:"fimba", name:"FAMBU大陸", currency:"gold",
     shardRegenCost:10, goldMult:1, shardMult:1, costMult:1,
     startFarmCapacity:3,
     bloodlines: BLOODLINES_FIMBA, ranks: RANKS_FIMBA, quests: QUESTS_FIMBA,
@@ -509,7 +537,7 @@ const CONTINENTS = {
     shardToGoldRate:4,
   },
   ima: {
-    key:"ima", name:"IMa大陸", currency:"gold",
+    key:"ima", name:"MIn大陸", currency:"gold",
     shardRegenCost:1000, goldMult:3, shardMult:60, costMult:5,
     startFarmCapacity:2,
     bloodlines: BLOODLINES_IMA, ranks: RANKS_IMA, quests: QUESTS_IMA,
@@ -517,27 +545,55 @@ const CONTINENTS = {
     shardToGoldRate:25,
   },
   ancient: {
-    key:"ancient", name:"古代FIMBA大陸", currency:"shard",
+    key:"ancient", name:"古代FAMBU大陸", currency:"shard",
     shardRegenCost:5000, goldMult:1, shardMult:8, costMult:8,
     startFarmCapacity:2,
     bloodlines: BLOODLINES_ANCIENT, ranks: RANKS_ANCIENT, quests: QUESTS_ANCIENT,
     topRankKey:"TYRANO", meijinThreshold:null,
     shardToGoldRate:1,
   },
+  ancientmin: {
+    key:"ancientmin", name:"古代MIn大陸", currency:"shard",
+    shardRegenCost:25000, goldMult:1, shardMult:20, costMult:15,
+    startFarmCapacity:2,
+    bloodlines: BLOODLINES_ANCIENT_MIN, ranks: RANKS_ANCIENT_MIN, quests: QUESTS_ANCIENT_MIN,
+    topRankKey:"GENESIS", meijinThreshold:null,
+    shardToGoldRate:1,
+  },
 };
-const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA, ...BLOODLINES_ANCIENT];
+const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA, ...BLOODLINES_ANCIENT, ...BLOODLINES_ANCIENT_MIN];
 const TRAVEL_COST = 25000;
 const ANCIENT_ENTRY_SHARD_COST = 2000000;
 const ANCIENT_UNLOCK_ISEKAI_CLEARS = 10;
+const ANCIENT_MIN_ENTRY_SHARD_COST = 2000000;
+const ANCIENT_MIN_UNLOCK_TYRANO_CLEARS = 10;
 const CONVERTER_SHARDS_PER_TICK_BASE = 5;
 const CONVERTER_UNIT_COST_BASE = 2000;
+
+/* 冒険で拾うツルハシの階層。dropContinent が現在地の大陸なら、そのツルハシが出る */
+const PICKAXE_TIERS = [
+  { key:"basic",    name:"ツルハシ",         emoji:"⛏️",   mult:0.04, dropContinent:"fimba" },
+  { key:"steel",    name:"鋼のツルハシ",     emoji:"⛏️🔩", mult:0.08, dropContinent:"ima" },
+  { key:"titanium", name:"チタンのツルハシ", emoji:"⛏️🔧", mult:0.14, dropContinent:"ancient" },
+  { key:"diamond",  name:"ダイヤのツルハシ", emoji:"⛏️💎", mult:0.22, dropContinent:"ancientmin" },
+];
+function pickaxeTierForContinent(cont){ return PICKAXE_TIERS.find(t=>t.dropContinent===(cont||state.currentContinent)) || PICKAXE_TIERS[0]; }
+
+/* 冒険で拾うグリップの階層。クリック時の獲得量のみを恒久強化する（自動採掘には効かない） */
+const GRIP_TIERS = [
+  { key:"basic",    name:"グリップ",         emoji:"🧤",   mult:0.08, dropContinent:"fimba" },
+  { key:"steel",    name:"鋼のグリップ",     emoji:"🧤🔩", mult:0.16, dropContinent:"ima" },
+  { key:"titanium", name:"チタンのグリップ", emoji:"🧤🔧", mult:0.28, dropContinent:"ancient" },
+  { key:"diamond",  name:"ダイヤのグリップ", emoji:"🧤💎", mult:0.44, dropContinent:"ancientmin" },
+];
+function gripTierForContinent(cont){ return GRIP_TIERS.find(t=>t.dropContinent===(cont||state.currentContinent)) || GRIP_TIERS[0]; }
 
 function freshContinentState(contKey){
   return {
     workers:0, machines:0, priests:0, trainingLevel:0,
     farmCapacity: CONTINENTS[contKey].startFarmCapacity,
     monsters: [], codex: {}, arenaWinnings: 0,
-    autoCombineUnlocked:false, autoCombineEnabled:false, useFruitForCombine:false,
+    autoCombineUnlocked:false, autoCombineEnabled:false, useFruitForCombine:false, autoCombineUseFruit:false,
     converters:0, converterEnabled:false,
     globalMult: 1.0,
   };
@@ -572,12 +628,19 @@ const DEFAULT_STATE = () => ({
     fimba: freshContinentState("fimba"),
     ima: freshContinentState("ima"),
     ancient: freshContinentState("ancient"),
+    ancientmin: freshContinentState("ancientmin"),
   },
   isMeijin: false,
   isImaChampion: false,
   isAncientChampion: false,
-  isekaiClearCount: 0,                 // IMa異世界ランク制覇回数（古代FIMBA解放条件）
-  items: { pickaxes: 0, fruits: 0 },   // 冒険で入手する道具（共通）
+  isAncientMinChampion: false,
+  isekaiClearCount: 0,                 // MIn異世界ランク制覇回数（古代FAMBU解放条件）
+  tyranoClearCount: 0,                 // 古代FAMBUティラノランク制覇回数（古代MIn解放条件）
+  items: {
+    pickaxes: { basic:0, steel:0, titanium:0, diamond:0 }, // ツルハシ（階層別・クリック＋自動どちらにも効く）
+    grips: { basic:0, steel:0, titanium:0, diamond:0 },    // グリップ（階層別・クリックのみ恒久強化）
+    fruits: 0,                          // 覚醒の実
+  },
   itemsInventory: {},                  // 血統専用アイテムの所持数 { "cont_bloodline": count }
   itemCodex: {},                       // 血統専用アイテムの発見フラグ
   log: []
@@ -656,7 +719,14 @@ function farmExpandCost(){ const c=cs(), m=contMeta(); return Math.floor(300 * M
 function autoCombineDeviceCost(){ return Math.floor(3000 * contMeta().costMult); }
 function converterCost(){ const c=cs(), m=contMeta(); return Math.floor(CONVERTER_UNIT_COST_BASE * Math.pow(1.6, c.converters) * m.costMult); }
 
-function pickaxeMult(){ return 1 + (state.items?.pickaxes ?? 0) * 0.04; }
+function pickaxeMult(){
+  const owned = state.items?.pickaxes || {};
+  return 1 + PICKAXE_TIERS.reduce((sum,t)=> sum + (owned[t.key]||0) * t.mult, 0);
+}
+function gripMult(){
+  const owned = state.items?.grips || {};
+  return 1 + GRIP_TIERS.reduce((sum,t)=> sum + (owned[t.key]||0) * t.mult, 0);
+}
 function shardPerSec(){
   const c = cs(), m = contMeta();
   return (c.workers*0.15 + c.machines*0.6) * c.globalMult * pickaxeMult() * m.shardMult;
@@ -667,7 +737,7 @@ function goldPerSec(){
 }
 function clickGold(){
   const c = cs(), m = contMeta();
-  return (2 + state.clickLevel*1.5) * c.globalMult * pickaxeMult() * m.goldMult;
+  return (2 + state.clickLevel*1.5) * c.globalMult * pickaxeMult() * gripMult() * m.goldMult;
 }
 function clickShardChance(){ return Math.min(0.6, (0.12 + state.clickLevel*0.01) * pickaxeMult()); }
 
@@ -957,6 +1027,13 @@ function toggleAutoCombine(){
   renderFarm();
 }
 
+function toggleAutoCombineFruit(){
+  const cst = cs();
+  if(!cst.autoCombineUnlocked) return;
+  cst.autoCombineUseFruit = !cst.autoCombineUseFruit;
+  renderFarm();
+}
+
 function autoCombineTick(){
   const cst = cs();
   if(!cst.autoCombineUnlocked || !cst.autoCombineEnabled) return;
@@ -965,7 +1042,8 @@ function autoCombineTick(){
   const pool = hibernating.filter(m=>!selectedCombine.includes(m.id));
   if(pool.length < 2) return;
   const a = pool[0], b = pool[1];
-  const result = performCombine(a.id, b.id, false);
+  const useFruit = cst.autoCombineUseFruit && state.items.fruits > 0;
+  const result = performCombine(a.id, b.id, useFruit);
   if(result){
     addLog(`⚙️ 自動合体装置が稼働しました`);
     updateHeader();
@@ -1039,7 +1117,7 @@ function enterTournament(rankKey){
       if(state.currentContinent==="fimba"){
         if(meta.meijinThreshold!=null && cst.arenaWinnings >= meta.meijinThreshold && !state.isMeijin){
           state.isMeijin = true;
-          toast("🏆 名人に認定されました！冒険タブとIMa大陸への渡航が解放されます");
+          toast("🏆 名人に認定されました！冒険タブとMIn大陸への渡航が解放されます");
         }
       } else if(state.currentContinent==="ima"){
         state.isekaiClearCount++;
@@ -1048,12 +1126,21 @@ function enterTournament(rankKey){
           toast("🌌 異世界の覇者に認定されました！");
         }
         if(state.isekaiClearCount >= ANCIENT_UNLOCK_ISEKAI_CLEARS){
-          toast(`🦴 古代FIMBA大陸への渡航条件を満たしました！（異世界ランク制覇 ${state.isekaiClearCount}回）`);
+          toast(`🦴 古代FAMBU大陸への渡航条件を満たしました！（異世界ランク制覇 ${state.isekaiClearCount}回）`);
         }
-      } else {
+      } else if(state.currentContinent==="ancient"){
+        state.tyranoClearCount++;
         if(!state.isAncientChampion){
           state.isAncientChampion = true;
           toast("🦖 古代の覇者に認定されました！");
+        }
+        if(state.tyranoClearCount >= ANCIENT_MIN_UNLOCK_TYRANO_CLEARS){
+          toast(`🔮 古代MIn大陸への渡航条件を満たしました！（ティラノランク制覇 ${state.tyranoClearCount}回）`);
+        }
+      } else {
+        if(!state.isAncientMinChampion){
+          state.isAncientMinChampion = true;
+          toast("🌌 創世の覇者に認定されました！");
         }
       }
     }
@@ -1097,10 +1184,11 @@ function dispatchAdventure(questKey){
   const winChance = Math.min(0.9, 0.4 + (sum-quest.req)/quest.req);
   const win = Math.random() < winChance;
 
-  let goldGain = 0, pxGain = 0, frGain = 0, itemGain = null;
+  let goldGain = 0, pxGain = 0, grGain = 0, frGain = 0, itemGain = null;
   if(win){
     goldGain = randInt(...quest.goldRange);
     if(Math.random() < quest.pickaxeChance) pxGain = randInt(...quest.itemAmount);
+    if(Math.random() < quest.pickaxeChance) grGain = randInt(...quest.itemAmount);
     if(Math.random() < quest.fruitChance) frGain = randInt(...quest.itemAmount);
     if(Math.random() < 0.12) itemGain = dropBloodlineItem(m.primary);
   } else {
@@ -1109,11 +1197,15 @@ function dispatchAdventure(questKey){
   }
 
   addCurrency(goldGain);
-  state.items.pickaxes += pxGain;
+  const pxTier = pickaxeTierForContinent();
+  state.items.pickaxes[pxTier.key] = (state.items.pickaxes[pxTier.key]||0) + pxGain;
+  const grTier = gripTierForContinent();
+  state.items.grips[grTier.key] = (state.items.grips[grTier.key]||0) + grGain;
   state.items.fruits += frGain;
 
   const itemMsg = [
-    pxGain>0 ? `⛏️ツルハシ+${pxGain}` : "",
+    pxGain>0 ? `${pxTier.emoji}${pxTier.name}+${pxGain}` : "",
+    grGain>0 ? `${grTier.emoji}${grTier.name}+${grGain}` : "",
     frGain>0 ? `🍎覚醒の実+${frGain}` : "",
     itemGain ? `💠${itemGain.name}+1` : "",
   ].filter(Boolean).join(" ");
@@ -1134,16 +1226,21 @@ function dispatchAdventure(questKey){
 function ancientUnlocked(){
   return state.isekaiClearCount >= ANCIENT_UNLOCK_ISEKAI_CLEARS;
 }
+function ancientMinUnlocked(){
+  return state.tyranoClearCount >= ANCIENT_MIN_UNLOCK_TYRANO_CLEARS;
+}
 
 function travelTo(cont){
   if(state.currentContinent === cont) return;
   if(cont === "ima" && !state.isMeijin) return;
   if(cont === "ancient" && !ancientUnlocked()) return;
+  if(cont === "ancientmin" && !ancientMinUnlocked()) return;
 
-  if(cont === "ancient"){
-    if(state.shards < ANCIENT_ENTRY_SHARD_COST){ toast("円盤石のかけらが足りません"); return; }
-    state.shards -= ANCIENT_ENTRY_SHARD_COST;
-    addLog(`🦴 ${CONTINENTS[cont].name}へ渡航しました（-${fmt(ANCIENT_ENTRY_SHARD_COST)}💎）`);
+  if(cont === "ancient" || cont === "ancientmin"){
+    const shardCost = cont === "ancient" ? ANCIENT_ENTRY_SHARD_COST : ANCIENT_MIN_ENTRY_SHARD_COST;
+    if(state.shards < shardCost){ toast("円盤石のかけらが足りません"); return; }
+    state.shards -= shardCost;
+    addLog(`🦴 ${CONTINENTS[cont].name}へ渡航しました（-${fmt(shardCost)}💎）`);
   } else {
     if(state.gold < TRAVEL_COST){ toast("ゴールドが足りません"); return; }
     state.gold -= TRAVEL_COST;
@@ -1171,6 +1268,7 @@ function updateHeader(){
 
 function renderTravelModal(){
   const ancientOk = ancientUnlocked();
+  const ancientMinOk = ancientMinUnlocked();
   return `
     <div class="modal-overlay" id="travelOverlay">
       <div class="modal-sheet">
@@ -1178,28 +1276,35 @@ function renderTravelModal(){
           <h2>大陸を移動</h2>
           <button class="modal-close-btn" id="closeTravelBtn">✕</button>
         </div>
-        <p style="font-size:11px;color:var(--text-dim);margin-top:-6px;">FIMBA⇔IMaの渡航には${fmt(TRAVEL_COST)}G、古代FIMBAへの渡航には円盤石${fmt(ANCIENT_ENTRY_SHARD_COST)}個かかります。渡航後も元の大陸の資産（モンスター・施設・図鑑）はそのまま残り、いつでも戻れます。</p>
+        <p style="font-size:11px;color:var(--text-dim);margin-top:-6px;">FAMBU⇔MInの渡航には${fmt(TRAVEL_COST)}G、古代大陸への渡航には円盤石${fmt(ANCIENT_ENTRY_SHARD_COST)}個かかります。渡航後も元の大陸の資産（モンスター・施設・図鑑）はそのまま残り、いつでも戻れます。</p>
         <div class="shop-grid">
           <div class="shop-item">
             <div class="info">
-              <div class="name">🏝️ FIMBA大陸</div>
+              <div class="name">🏝️ FAMBU大陸</div>
               <div class="desc">${state.currentContinent==="fimba" ? "現在地です。" : "円盤石10個で再生。標準的な採掘レート。"}</div>
             </div>
             <button class="buy-btn" id="travelFimbaBtn" ${state.currentContinent==="fimba"?"disabled":""}>${state.currentContinent==="fimba" ? "現在地" : `移動<br>${fmt(TRAVEL_COST)}G`}</button>
           </div>
           <div class="shop-item">
             <div class="info">
-              <div class="name">🌌 IMa大陸 ${!state.isMeijin?"🔒":""}</div>
-              <div class="desc">${!state.isMeijin ? "FIMBAで銀河ランクを制覇（名人認定）すると渡航できます。" : (state.currentContinent==="ima" ? "現在地です。" : "円盤石1000個で再生。採掘レートはFIMBAより高インフレ。モンスターも施設も全く別物です。")}</div>
+              <div class="name">🌌 MIn大陸 ${!state.isMeijin?"🔒":""}</div>
+              <div class="desc">${!state.isMeijin ? "FAMBUで銀河ランクを制覇（名人認定）すると渡航できます。" : (state.currentContinent==="ima" ? "現在地です。" : "円盤石1000個で再生。採掘レートはFAMBUより高インフレ。モンスターも施設も全く別物です。")}</div>
             </div>
             <button class="buy-btn" id="travelImaBtn" ${(!state.isMeijin || state.currentContinent==="ima")?"disabled":""}>${state.currentContinent==="ima" ? "現在地" : `移動<br>${fmt(TRAVEL_COST)}G`}</button>
           </div>
           <div class="shop-item">
             <div class="info">
-              <div class="name">🦴 古代FIMBA大陸 ${!ancientOk?"🔒":""}</div>
-              <div class="desc">${!ancientOk ? `IMaの異世界ランクを${ANCIENT_UNLOCK_ISEKAI_CLEARS}回制覇すると渡航できます（現在 ${state.isekaiClearCount}回）。` : (state.currentContinent==="ancient" ? "現在地です。" : "通貨はゴールドではなく円盤石のかけら。モンスターも施設も全く別物です。")}</div>
+              <div class="name">🦴 古代FAMBU大陸 ${!ancientOk?"🔒":""}</div>
+              <div class="desc">${!ancientOk ? `MInの異世界ランクを${ANCIENT_UNLOCK_ISEKAI_CLEARS}回制覇すると渡航できます（現在 ${state.isekaiClearCount}回）。` : (state.currentContinent==="ancient" ? "現在地です。" : "通貨はゴールドではなく円盤石のかけら。モンスターも施設も全く別物です。")}</div>
             </div>
             <button class="buy-btn" id="travelAncientBtn" ${(!ancientOk || state.currentContinent==="ancient")?"disabled":""}>${state.currentContinent==="ancient" ? "現在地" : `移動<br>${fmt(ANCIENT_ENTRY_SHARD_COST)}💎`}</button>
+          </div>
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">🔮 古代MIn大陸 ${!ancientMinOk?"🔒":""}</div>
+              <div class="desc">${!ancientMinOk ? `古代FAMBUのティラノランクを${ANCIENT_MIN_UNLOCK_TYRANO_CLEARS}回制覇すると渡航できます（現在 ${state.tyranoClearCount}回）。` : (state.currentContinent==="ancientmin" ? "現在地です。" : "通貨は円盤石のかけら。古代FAMBUよりさらに高インフレの最終エリアです。")}</div>
+            </div>
+            <button class="buy-btn" id="travelAncientMinBtn" ${(!ancientMinOk || state.currentContinent==="ancientmin")?"disabled":""}>${state.currentContinent==="ancientmin" ? "現在地" : `移動<br>${fmt(ANCIENT_MIN_ENTRY_SHARD_COST)}💎`}</button>
           </div>
         </div>
       </div>
@@ -1213,6 +1318,7 @@ function openTravelModal(){
   document.getElementById("travelFimbaBtn").onclick = ()=>travelTo("fimba");
   document.getElementById("travelImaBtn").onclick = ()=>travelTo("ima");
   document.getElementById("travelAncientBtn").onclick = ()=>travelTo("ancient");
+  document.getElementById("travelAncientMinBtn").onclick = ()=>travelTo("ancientmin");
 }
 
 /* =========================================================
@@ -1229,7 +1335,7 @@ function renderMine(){
         <button class="rock-btn" id="rockBtn">岩を掘る<br>⛏</button>
       </div>
       <div class="prod-line">
-        <span>クリック: +${fmt(clickGold())}${sfx} / かけら確率 ${(clickShardChance()*100).toFixed(0)}%</span>
+        <span>クリック: +${fmt(clickGold())}${sfx}${gripMult()>1?` (グリップ x${gripMult().toFixed(2)})`:""} / かけら確率 ${(clickShardChance()*100).toFixed(0)}%</span>
         <span>自動: +${fmt(goldPerSec())}${sfx}/秒・+${fmt(shardPerSec())}💎/秒</span>
       </div>
     </div>
@@ -1331,7 +1437,7 @@ function renderGacha(highlightMon=null){
   }
 }
 
-/* --- 図鑑モーダル（モンスター図鑑：FIMBA/IMa切替 ＋ アイテム図鑑） --- */
+/* --- 図鑑モーダル（モンスター図鑑：FAMBU/MIn/古代 切替 ＋ アイテム図鑑） --- */
 function renderMonsterCodexBody(cont){
   const meta = CONTINENTS[cont];
   const contState = state.continents[cont];
@@ -1409,6 +1515,7 @@ function renderCodexModalBody(){
 function renderCodexModal(){
   const imaLocked = !state.isMeijin;
   const ancientLocked = !ancientUnlocked();
+  const ancientMinLocked = !ancientMinUnlocked();
   return `
     <div class="modal-overlay" id="codexOverlay">
       <div class="modal-sheet">
@@ -1417,9 +1524,10 @@ function renderCodexModal(){
           <button class="modal-close-btn" id="closeCodexBtn">✕</button>
         </div>
         <div class="codex-tabbar">
-          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='fimba'?'active':''}" data-view="monster" data-cont="fimba">FIMBA</button>
-          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ima'?'active':''} ${imaLocked?'locked':''}" data-view="monster" data-cont="ima">IMa${imaLocked?' 🔒':''}</button>
+          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='fimba'?'active':''}" data-view="monster" data-cont="fimba">FAMBU</button>
+          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ima'?'active':''} ${imaLocked?'locked':''}" data-view="monster" data-cont="ima">MIn${imaLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ancient'?'active':''} ${ancientLocked?'locked':''}" data-view="monster" data-cont="ancient">古代${ancientLocked?' 🔒':''}</button>
+          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ancientmin'?'active':''} ${ancientMinLocked?'locked':''}" data-view="monster" data-cont="ancientmin">古代MIn${ancientMinLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='item'?'active':''}" data-view="item">アイテム</button>
         </div>
         <div id="codexModalBody">${renderCodexModalBody()}</div>
@@ -1436,6 +1544,7 @@ function bindCodexModalEvents(){
       if(btn.dataset.view==="monster"){
         if(btn.dataset.cont==="ima" && !state.isMeijin) return;
         if(btn.dataset.cont==="ancient" && !ancientUnlocked()) return;
+        if(btn.dataset.cont==="ancientmin" && !ancientMinUnlocked()) return;
         codexModalView = "monster";
         codexModalContinent = btn.dataset.cont;
       } else {
@@ -1449,9 +1558,13 @@ function bindCodexModalEvents(){
 
 function openCodex(){
   codexModalView = "monster";
-  codexModalContinent = (state.currentContinent==="ima" && state.isMeijin) || (state.currentContinent==="ancient" && ancientUnlocked())
-    ? state.currentContinent
-    : "fimba";
+  const cont = state.currentContinent;
+  const contOk =
+    (cont==="fimba") ||
+    (cont==="ima" && state.isMeijin) ||
+    (cont==="ancient" && ancientUnlocked()) ||
+    (cont==="ancientmin" && ancientMinUnlocked());
+  codexModalContinent = contOk ? cont : "fimba";
   document.getElementById("modalRoot").innerHTML = renderCodexModal();
   bindCodexModalEvents();
 }
@@ -1540,9 +1653,16 @@ function renderFarm(){
           <div class="toggle-row">
             <div>
               <div style="font-weight:700;font-size:13px;">⚙️ 自動合体</div>
-              <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、選択中スロットのモンスターは対象外です。狙った組み合わせを作る時はOFFにしてください。覚醒の実は消費しません。</div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONの間、選択中スロットのモンスターは対象外です。狙った組み合わせを作る時はOFFにしてください。</div>
             </div>
             <div class="toggle-switch ${cst.autoCombineEnabled?'on':''}" id="autoCombineToggle"><div class="knob"></div></div>
+          </div>
+          <div class="toggle-row" style="margin-top:8px;">
+            <div>
+              <div style="font-weight:700;font-size:13px;">🍎 自動合体でも覚醒の実を使う</div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:2px;">ONにすると自動合体でも所持している覚醒の実を消費して幻の血統を狙います。実を温存したい場合はOFFのままにしてください（所持: ${state.items.fruits}個）。</div>
+            </div>
+            <div class="toggle-switch ${cst.autoCombineUseFruit?'on':''}" id="autoCombineFruitToggle"><div class="knob"></div></div>
           </div>
         `}
       </div>
@@ -1560,6 +1680,9 @@ function renderFarm(){
   }
   if(document.getElementById("autoCombineToggle")){
     document.getElementById("autoCombineToggle").onclick = toggleAutoCombine;
+  }
+  if(document.getElementById("autoCombineFruitToggle")){
+    document.getElementById("autoCombineFruitToggle").onclick = toggleAutoCombineFruit;
   }
   document.querySelectorAll(".mon-select").forEach(el=>{
     el.onclick = ()=> toggleCombineSelect(Number(el.dataset.mid));
@@ -1634,17 +1757,40 @@ function renderAdventure(){
     <div class="panel">
       <h2>道具袋</h2>
       <div class="shop-grid">
+        ${PICKAXE_TIERS.map(t=>`
         <div class="shop-item">
           <div class="info">
-            <div class="name">⛏️ ツルハシ</div>
-            <div class="desc">所持するほど採掘速度が上昇（現在 x${pickaxeMult().toFixed(2)}）</div>
+            <div class="name">${t.emoji} ${t.name}</div>
+            <div class="desc">${CONTINENTS[t.dropContinent].name}の冒険で入手／クリック＋自動どちらも+${(t.mult*100).toFixed(0)}%ずつ</div>
           </div>
-          <div style="font-weight:700;color:var(--ore);">${state.items.pickaxes}個</div>
+          <div style="font-weight:700;color:var(--ore);">${state.items.pickaxes[t.key]||0}個</div>
+        </div>`).join("")}
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">ツルハシ合計倍率</div>
+            <div class="desc">全ツルハシの合計で採掘速度が上昇（クリック・自動とも）</div>
+          </div>
+          <div style="font-weight:700;color:var(--ore);">x${pickaxeMult().toFixed(2)}</div>
+        </div>
+        ${GRIP_TIERS.map(t=>`
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">${t.emoji} ${t.name}</div>
+            <div class="desc">${CONTINENTS[t.dropContinent].name}の冒険で入手／「岩を掘る」クリックのみ+${(t.mult*100).toFixed(0)}%ずつ（自動採掘には効果なし）</div>
+          </div>
+          <div style="font-weight:700;color:var(--good);">${state.items.grips[t.key]||0}個</div>
+        </div>`).join("")}
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">グリップ合計倍率</div>
+            <div class="desc">クリックだけがさらに強化される（連打が報われる）</div>
+          </div>
+          <div style="font-weight:700;color:var(--good);">x${gripMult().toFixed(2)}</div>
         </div>
         <div class="shop-item">
           <div class="info">
             <div class="name">🍎 覚醒の実</div>
-            <div class="desc">「ファーム」タブの合体で使用すると幻の血統が出やすくなる</div>
+            <div class="desc">「ファーム」タブの合体（手動・自動とも）で使用すると幻の血統が出やすくなる</div>
           </div>
           <div style="font-weight:700;color:var(--mystic);">${state.items.fruits}個</div>
         </div>
@@ -1749,14 +1895,25 @@ function normalizeState(){
   state.continents.fimba = state.continents.fimba || freshContinentState("fimba");
   state.continents.ima = state.continents.ima || freshContinentState("ima");
   state.continents.ancient = state.continents.ancient || freshContinentState("ancient");
+  state.continents.ancientmin = state.continents.ancientmin || freshContinentState("ancientmin");
   state.currentContinent = state.currentContinent || "fimba";
-  state.items = state.items || { pickaxes: 0, fruits: 0 };
+  state.items = state.items || { pickaxes: {}, fruits: 0 };
+  // 旧仕様（ツルハシが単一の数値）から階層別オブジェクトへの移行
+  if(typeof state.items.pickaxes === "number"){
+    state.items.pickaxes = { basic: state.items.pickaxes, steel:0, titanium:0, diamond:0 };
+  }
+  state.items.pickaxes = state.items.pickaxes || {};
+  PICKAXE_TIERS.forEach(t=>{ state.items.pickaxes[t.key] = state.items.pickaxes[t.key] || 0; });
+  state.items.grips = state.items.grips || {};
+  GRIP_TIERS.forEach(t=>{ state.items.grips[t.key] = state.items.grips[t.key] || 0; });
   state.itemsInventory = state.itemsInventory || {};
   state.itemCodex = state.itemCodex || {};
   state.nextMonId = state.nextMonId || 1;
   state.isekaiClearCount = state.isekaiClearCount || 0;
+  state.tyranoClearCount = state.tyranoClearCount || 0;
   state.isImaChampion = state.isImaChampion || false;
   state.isAncientChampion = state.isAncientChampion || false;
+  state.isAncientMinChampion = state.isAncientMinChampion || false;
 
   Object.keys(state.continents).forEach(contKey=>{
     const cst = state.continents[contKey];
@@ -1770,6 +1927,7 @@ function normalizeState(){
     cst.autoCombineUnlocked = cst.autoCombineUnlocked || false;
     cst.autoCombineEnabled = cst.autoCombineEnabled || false;
     cst.useFruitForCombine = cst.useFruitForCombine || false;
+    cst.autoCombineUseFruit = cst.autoCombineUseFruit || false;
     cst.globalMult = cst.globalMult || 1.0;
     cst.arenaWinnings = cst.arenaWinnings || 0;
     cst.monsters = (cst.monsters || []).map(m=>{
