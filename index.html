@@ -280,7 +280,7 @@
 
   .log-box{
     font-size:11px;color:var(--text-dim);max-height:120px;overflow-y:auto;
-    display:flex;flex-direction:column-reverse;gap:4px;
+    display:flex;flex-direction:column;gap:4px;
   }
   .log-box div{border-bottom:1px dotted var(--line);padding-bottom:3px;}
 
@@ -381,7 +381,7 @@
           <button class="codex-open-btn" id="openCodexBtn">📖 図鑑</button>
         </div>
       </div>
-      <div class="stats-row">
+      <div class="stats-row" id="statsRow">
         <div class="stat-chip gold"><span class="k">ゴールド</span><span class="v" id="goldVal">0</span></div>
         <div class="stat-chip shard"><span class="k">かけら</span><span class="v" id="shardVal">0</span></div>
         <div class="stat-chip"><span class="k">倍率</span><span class="v" id="multVal">x1.00</span></div>
@@ -530,6 +530,33 @@ const QUESTS_ANCIENT_MIN = [
   { key:"secret", name:"混沌の祭壇",   desc:"古代MInの高難度クエスト。", req:736, lifeCost:4, goldRange:[7000,12000], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
 ];
 
+const BLOODLINES_FUTURE_FAMBU = [
+  { key:"nano",        name:"ナノ",       emoji:"🧬", powerRange:[110,180], wisdomRange:[25,55],  lifeRange:[80,110],  weight:15 },
+  { key:"holo",        name:"ホロ",       emoji:"📡", powerRange:[25,55],   wisdomRange:[110,180],lifeRange:[100,135], weight:15 },
+  { key:"drone",       name:"ドローン",   emoji:"🛸", powerRange:[55,95],   wisdomRange:[55,95],  lifeRange:[75,105],  weight:15 },
+  { key:"plasma",      name:"プラズマ",   emoji:"⚡", powerRange:[125,195], wisdomRange:[12,40],  lifeRange:[65,90],   weight:15 },
+  { key:"android",     name:"アンドロイド", emoji:"🦾", powerRange:[30,65],  wisdomRange:[125,190],lifeRange:[110,150], weight:15 },
+  { key:"ai",          name:"AI",         emoji:"🧠", powerRange:[80,130],  wisdomRange:[80,130], lifeRange:[70,100],  weight:15 },
+  { key:"neon",        name:"ネオン",     emoji:"💡", powerRange:[100,160], wisdomRange:[100,160],lifeRange:[80,115],  weight:8  },
+  { key:"singularity", name:"特異点",     emoji:"🌐", powerRange:[175,270], wisdomRange:[175,270],lifeRange:[135,180], weight:2  },
+];
+const RANKS_FUTURE_FAMBU = [
+  { key:"E",       req:90,   reward:[5,10] },
+  { key:"D",       req:211,  reward:[12,22] },
+  { key:"C",       req:360,  reward:[25,45] },
+  { key:"B",       req:569,  reward:[55,90] },
+  { key:"A",       req:839,  reward:[110,170] },
+  { key:"S",       req:1199, reward:[220,340] },
+  { key:"SS",      req:1677, reward:[420,650] },
+  { key:"QUANTUM", label:"量子", req:2390, reward:[850,1300] },
+  { key:"ETERNAL", label:"永遠", req:3330, reward:[1900,2900] },
+];
+const QUESTS_FUTURE_FAMBU = [
+  { key:"near",   name:"廃棄区画のサルベージ", desc:"近未来FAMBUでの手頃な難易度。", req:240, lifeCost:2, goldRange:[15,25], pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"deep",   name:"地下データセンター",   desc:"歯応えのある中難度クエスト。",   req:540, lifeCost:3, goldRange:[40,70],  pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
+  { key:"secret", name:"封鎖されたAIコア",     desc:"近未来FAMBUの高難度クエスト。", req:960, lifeCost:4, goldRange:[90,150], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+];
+
 const CONTINENTS = {
   fimba: {
     key:"fimba", name:"FAMBU大陸", currency:"gold",
@@ -563,13 +590,23 @@ const CONTINENTS = {
     topRankKey:"GENESIS", meijinThreshold:null,
     shardToGoldRate:1,
   },
+  futurefambu: {
+    key:"futurefambu", name:"近未来FAMBU大陸", currency:"mon",
+    shardRegenCost:50, goldMult:1, shardMult:1, costMult:20,
+    startFarmCapacity:2,
+    bloodlines: BLOODLINES_FUTURE_FAMBU, ranks: RANKS_FUTURE_FAMBU, quests: QUESTS_FUTURE_FAMBU,
+    topRankKey:"ETERNAL", meijinThreshold:null,
+    shardToGoldRate:1,
+  },
 };
-const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA, ...BLOODLINES_ANCIENT, ...BLOODLINES_ANCIENT_MIN];
+const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA, ...BLOODLINES_ANCIENT, ...BLOODLINES_ANCIENT_MIN, ...BLOODLINES_FUTURE_FAMBU];
 const TRAVEL_COST = 25000;
 const ANCIENT_ENTRY_SHARD_COST = 2000000;
 const ANCIENT_UNLOCK_ISEKAI_CLEARS = 10;
 const ANCIENT_MIN_ENTRY_SHARD_COST = 2000000;
 const ANCIENT_MIN_UNLOCK_TYRANO_CLEARS = 10;
+const FUTURE_FAMBU_ENTRY_GOLD_COST = TRAVEL_COST; // 通常の渡航代（ゴールド）。この後ゴールド＋かけらがMonに圧縮される
+const MON_COMPRESSION = 1000; // (ゴールド＋かけら) ÷ この値 = Mon
 const CONVERTER_SHARDS_PER_TICK_BASE = 5;
 const CONVERTER_UNIT_COST_BASE = 2000;
 
@@ -605,20 +642,56 @@ function freshContinentState(contKey){
 }
 
 /* =========================================================
-   Currency helpers（大陸ごとに通貨がゴールド or 円盤石のかけら）
+   Currency helpers（大陸ごとに通貨がゴールド／円盤石のかけら／Mon）
 ========================================================= */
 function currencyKey(cont){ return contMeta(cont).currency || "gold"; }
-function currencySuffix(cont){ return currencyKey(cont)==="shard" ? "💎" : "G"; }
-function currencyName(cont){ return currencyKey(cont)==="shard" ? "円盤石のかけら" : "ゴールド"; }
-function getCurrency(cont){ return currencyKey(cont)==="shard" ? state.shards : state.gold; }
+function currencySuffix(cont){
+  const k = currencyKey(cont);
+  if(k==="shard") return "💎";
+  if(k==="mon") return "Ⓜ️";
+  return "G";
+}
+function currencyName(cont){
+  const k = currencyKey(cont);
+  if(k==="shard") return "円盤石のかけら";
+  if(k==="mon") return "Mon";
+  return "ゴールド";
+}
+function getCurrency(cont){
+  const k = currencyKey(cont);
+  if(k==="shard") return state.shards;
+  if(k==="mon") return state.mon;
+  return state.gold;
+}
 function hasCurrency(amount, cont){ return getCurrency(cont) >= amount; }
 function spendCurrency(amount, cont){
-  if(currencyKey(cont)==="shard"){ state.shards -= amount; } else { state.gold -= amount; }
+  const k = currencyKey(cont);
+  if(k==="shard"){ state.shards -= amount; }
+  else if(k==="mon"){ state.mon -= amount; }
+  else { state.gold -= amount; }
 }
 function addCurrency(amount, cont){
-  if(currencyKey(cont)==="shard"){ state.shards += amount; } else { state.gold += amount; }
+  const k = currencyKey(cont);
+  if(k==="shard"){ state.shards += amount; }
+  else if(k==="mon"){ state.mon += amount; }
+  else { state.gold += amount; }
 }
 function costLabel(amount, cont){ return fmt(amount) + currencySuffix(cont); }
+/* 再生（モンスター誕生）に使う資源。ゴールド系大陸は従来通り「かけら」を使い、
+   shard/mon通貨の大陸ではその大陸の通貨をそのまま使う */
+function regenCurrencyKey(cont){
+  const k = currencyKey(cont);
+  return k==="gold" ? "shard" : k;
+}
+function getRegenCurrency(cont){
+  const k = regenCurrencyKey(cont);
+  if(k==="mon") return state.mon;
+  return state.shards;
+}
+function spendRegenCurrency(amount, cont){
+  const k = regenCurrencyKey(cont);
+  if(k==="mon"){ state.mon -= amount; } else { state.shards -= amount; }
+}
 
 /* =========================================================
    State
@@ -626,6 +699,7 @@ function costLabel(amount, cont){ return fmt(amount) + currencySuffix(cont); }
 const DEFAULT_STATE = () => ({
   gold: 0,
   shards: 0,
+  mon: 0,                                // 近未来FAMBU専用通貨（滞在中のみゴールド／かけらの代わりに使用）
   clickLevel: 1,
   nextMonId: 1,
   currentContinent: "fimba",
@@ -634,11 +708,13 @@ const DEFAULT_STATE = () => ({
     ima: freshContinentState("ima"),
     ancient: freshContinentState("ancient"),
     ancientmin: freshContinentState("ancientmin"),
+    futurefambu: freshContinentState("futurefambu"),
   },
   isMeijin: false,
   isImaChampion: false,
   isAncientChampion: false,
   isAncientMinChampion: false,
+  isFutureFambuChampion: false,
   isekaiClearCount: 0,                 // MIn異世界ランク制覇回数（古代FAMBU解放条件）
   tyranoClearCount: 0,                 // 古代FAMBUティラノランク制覇回数（古代MIn解放条件）
   items: {
@@ -713,6 +789,10 @@ function applyStickyOffset(el){
   el.style.top = (head ? head.offsetHeight : 0) + "px";
 }
 
+function scrollLogsToBottom(){
+  document.querySelectorAll(".log-box").forEach(box=>{ box.scrollTop = box.scrollHeight; });
+}
+
 /* =========================================================
    Economy: shop costs
 ========================================================= */
@@ -727,10 +807,10 @@ function breederCost(){ return Math.floor(4000 * contMeta().costMult); }
 function agencyCost(){ return Math.floor(4000 * contMeta().costMult); }
 
 const BREEDER_BASE_INTERVAL = 12000;
-const BREEDER_MAX_LEVEL = 5;
+const BREEDER_MAX_LEVEL = 10;
 const BREEDER_LEVEL_FACTOR = 0.82; // レベルごとに待機時間が82%に短縮
 const AGENCY_BASE_INTERVAL = 14000;
-const AGENCY_MAX_LEVEL = 5;
+const AGENCY_MAX_LEVEL = 10;
 const AGENCY_LEVEL_FACTOR = 0.82;
 
 function breederInterval(cst){
@@ -917,8 +997,8 @@ function buyFarmExpand(){
 function performRegen(){
   const cst = cs(), meta = contMeta();
   const COST = meta.shardRegenCost;
-  if(state.shards < COST) return null;
-  state.shards -= COST;
+  if(getRegenCurrency() < COST) return null;
+  spendRegenCurrency(COST);
 
   const pool = meta.bloodlines.map(b=>({key:b.key, w:b.weight}));
   const primaryKey = weightedPick(pool);
@@ -931,9 +1011,10 @@ function performRegen(){
   cst.monsters.push(mon);
   const label = bloodlineLabel(primaryKey, secondaryKey);
   const isPure = primaryKey === secondaryKey;
+  const verb = regenCurrencyKey()==="mon" ? "Monでの再生" : "円盤石の再生";
   addLog(isPure
-    ? `✨ 円盤石の再生で ${mon.name}(${label}) が誕生！`
-    : `🧬 円盤石の再生で雑種 ${mon.name}(${label}) が誕生！`);
+    ? `✨ ${verb}で ${mon.name}(${label}) が誕生！`
+    : `🧬 ${verb}で雑種 ${mon.name}(${label}) が誕生！`);
   if(mon._newDiscovery) addLog(`📖 図鑑に新しい組み合わせ「${label}」が記録されました！`);
   enforceFarmCapacity();
   return mon;
@@ -953,7 +1034,7 @@ function priestTick(){
   for(let i=0;i<cst.priests;i++){
     const activeCount = cst.monsters.filter(m=>m.status!=="released").length;
     if(activeCount >= cst.farmCapacity) break;
-    if(state.shards < meta.shardRegenCost) break;
+    if(getRegenCurrency() < meta.shardRegenCost) break;
     const mon = performRegen();
     if(!mon) break;
     addLog(`⛩️ 神官が ${mon.name} を自動で再生しました`);
@@ -1167,10 +1248,15 @@ function performTournamentEntry(monId, rankKey){
         if(state.tyranoClearCount === ANCIENT_MIN_UNLOCK_TYRANO_CLEARS){
           toast(`🔮 古代MIn大陸への渡航条件を満たしました！（ティラノランク制覇 ${state.tyranoClearCount}回）`);
         }
-      } else {
+      } else if(state.currentContinent==="ancientmin"){
         if(!state.isAncientMinChampion){
           state.isAncientMinChampion = true;
-          toast("🌌 創世の覇者に認定されました！");
+          toast("🌌 創世の覇者に認定されました！近未来FAMBU大陸への渡航が解放されます");
+        }
+      } else {
+        if(!state.isFutureFambuChampion){
+          state.isFutureFambuChampion = true;
+          toast("🌐 永遠の覇者に認定されました！");
         }
       }
     }
@@ -1408,23 +1494,49 @@ function ancientUnlocked(){
 function ancientMinUnlocked(){
   return state.tyranoClearCount >= ANCIENT_MIN_UNLOCK_TYRANO_CLEARS;
 }
+function futureFambuUnlocked(){
+  return state.isAncientMinChampion;
+}
 
 function travelTo(cont){
   if(state.currentContinent === cont) return;
   if(cont === "ima" && !state.isMeijin) return;
   if(cont === "ancient" && !ancientUnlocked()) return;
   if(cont === "ancientmin" && !ancientMinUnlocked()) return;
+  if(cont === "futurefambu" && !futureFambuUnlocked()) return;
 
-  if(cont === "ancient" || cont === "ancientmin"){
-    const shardCost = cont === "ancient" ? ANCIENT_ENTRY_SHARD_COST : ANCIENT_MIN_ENTRY_SHARD_COST;
-    if(state.shards < shardCost){ toast("円盤石のかけらが足りません"); return; }
-    state.shards -= shardCost;
-    addLog(`🦴 ${CONTINENTS[cont].name}へ渡航しました（-${fmt(shardCost)}💎）`);
-  } else {
-    if(state.gold < TRAVEL_COST){ toast("ゴールドが足りません"); return; }
-    state.gold -= TRAVEL_COST;
-    addLog(`⛴️ ${CONTINENTS[cont].name}へ渡航しました（-${fmt(TRAVEL_COST)}G）`);
+  const leavingFuture = state.currentContinent === "futurefambu";
+  const enteringFuture = cont === "futurefambu";
+
+  if(!leavingFuture && !enteringFuture){
+    if(cont === "ancient" || cont === "ancientmin"){
+      const shardCost = cont === "ancient" ? ANCIENT_ENTRY_SHARD_COST : ANCIENT_MIN_ENTRY_SHARD_COST;
+      if(state.shards < shardCost){ toast("円盤石のかけらが足りません"); return; }
+      state.shards -= shardCost;
+      addLog(`🦴 ${CONTINENTS[cont].name}へ渡航しました（-${fmt(shardCost)}💎）`);
+    } else {
+      if(state.gold < TRAVEL_COST){ toast("ゴールドが足りません"); return; }
+      state.gold -= TRAVEL_COST;
+      addLog(`⛴️ ${CONTINENTS[cont].name}へ渡航しました（-${fmt(TRAVEL_COST)}G）`);
+    }
+  } else if(enteringFuture){
+    // ゴールド＋円盤石のかけらをMonに圧縮する
+    const gained = Math.floor((state.gold + state.shards) / MON_COMPRESSION);
+    addLog(`🌐 ゴールド${fmt(state.gold)}Gと円盤石${fmt(state.shards)}💎をMon ${fmt(gained)}に圧縮し、${CONTINENTS[cont].name}へ渡航しました`);
+    state.mon += gained;
+    state.gold = 0;
+    state.shards = 0;
+  } else if(leavingFuture){
+    // Monをゴールド＋円盤石のかけらに戻す（元の表記に復元）
+    const backTotal = state.mon * MON_COMPRESSION;
+    const backGold = Math.floor(backTotal/2);
+    const backShard = backTotal - backGold;
+    addLog(`♻️ Mon ${fmt(state.mon)}をゴールド${fmt(backGold)}Gと円盤石${fmt(backShard)}💎に戻し、${CONTINENTS[cont].name}へ渡航しました`);
+    state.gold += backGold;
+    state.shards += backShard;
+    state.mon = 0;
   }
+
   state.currentContinent = cont;
   selectedCombine = [];
   selectedTournamentMon = null;
@@ -1442,6 +1554,7 @@ const TITLES = [
   { key:"ima_champion",       label:"異界の覇者", check: ()=>state.isImaChampion },
   { key:"ancient_champion",   label:"古代の覇者", check: ()=>state.isAncientChampion },
   { key:"ancientmin_champion",label:"創世の覇者", check: ()=>state.isAncientMinChampion },
+  { key:"future_champion",    label:"永遠の覇者", check: ()=>state.isFutureFambuChampion },
 ];
 function currentTitle(){
   let best = null;
@@ -1450,8 +1563,17 @@ function currentTitle(){
 }
 
 function updateHeader(){
-  document.getElementById("goldVal").textContent = fmt(state.gold);
-  document.getElementById("shardVal").textContent = fmt(state.shards);
+  const isMon = currencyKey()==="mon";
+  document.getElementById("statsRow").innerHTML = isMon ? `
+    <div class="stat-chip gold"><span class="k">Mon</span><span class="v" id="goldVal">0</span></div>
+    <div class="stat-chip"><span class="k">倍率</span><span class="v" id="multVal">x1.00</span></div>
+  ` : `
+    <div class="stat-chip gold"><span class="k">ゴールド</span><span class="v" id="goldVal">0</span></div>
+    <div class="stat-chip shard"><span class="k">かけら</span><span class="v" id="shardVal">0</span></div>
+    <div class="stat-chip"><span class="k">倍率</span><span class="v" id="multVal">x1.00</span></div>
+  `;
+  document.getElementById("goldVal").textContent = isMon ? fmt(state.mon) : fmt(state.gold);
+  if(!isMon) document.getElementById("shardVal").textContent = fmt(state.shards);
   document.getElementById("multVal").textContent = "x"+cs().globalMult.toFixed(2);
   const title = currentTitle();
   const badge = document.getElementById("meijinBadge");
@@ -1463,6 +1585,7 @@ function updateHeader(){
 function renderTravelModal(){
   const ancientOk = ancientUnlocked();
   const ancientMinOk = ancientMinUnlocked();
+  const futureOk = futureFambuUnlocked();
   return `
     <div class="modal-overlay" id="travelOverlay">
       <div class="modal-sheet">
@@ -1500,6 +1623,13 @@ function renderTravelModal(){
             </div>
             <button class="buy-btn" id="travelAncientMinBtn" ${(!ancientMinOk || state.currentContinent==="ancientmin")?"disabled":""}>${state.currentContinent==="ancientmin" ? "現在地" : `移動<br>${fmt(ANCIENT_MIN_ENTRY_SHARD_COST)}💎`}</button>
           </div>
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">🌐 近未来FAMBU大陸 ${!futureOk?"🔒":""}</div>
+              <div class="desc">${!futureOk ? "古代MInの創世ランクを制覇（創世の覇者）すると渡航できます。" : (state.currentContinent==="futurefambu" ? "現在地です。" : `渡航時にゴールドと円盤石のかけらを合算してMonに圧縮します（÷${fmt(MON_COMPRESSION)}）。他大陸へ戻ると元の表記（ゴールド・かけら）に自動で戻ります。`)}</div>
+            </div>
+            <button class="buy-btn" id="travelFutureBtn" ${(!futureOk || state.currentContinent==="futurefambu")?"disabled":""}>${state.currentContinent==="futurefambu" ? "現在地" : "移動<br>Monへ圧縮"}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1513,6 +1643,7 @@ function openTravelModal(){
   document.getElementById("travelImaBtn").onclick = ()=>travelTo("ima");
   document.getElementById("travelAncientBtn").onclick = ()=>travelTo("ancient");
   document.getElementById("travelAncientMinBtn").onclick = ()=>travelTo("ancientmin");
+  document.getElementById("travelFutureBtn").onclick = ()=>travelTo("futurefambu");
 }
 
 /* =========================================================
@@ -1562,17 +1693,22 @@ function renderMine(){
   document.getElementById("rockBtn").onclick = (e)=>doMineClick(e);
   document.getElementById("buyWorkerBtn").onclick = buyWorker;
   document.getElementById("buyMachineBtn").onclick = buyMachine;
+  scrollLogsToBottom();
 }
 
 function renderGacha(highlightMon=null){
   const cst = cs(), meta = contMeta();
   const cost = meta.shardRegenCost;
+  const rck = regenCurrencyKey();
+  const rcSuffix = rck==="mon" ? "Ⓜ️" : "💎";
+  const rcName = rck==="mon" ? "Mon" : "円盤石のかけら";
+  const rcCurrent = getRegenCurrency();
   document.getElementById("mainArea").innerHTML = `
     <div class="panel gacha-zone">
-      <h2 style="text-align:left;">円盤石を再生する（${meta.name}）</h2>
-      <p style="font-size:12px;color:var(--text-dim);">円盤石のかけらを${fmt(cost)}個消費してモンスターを再生します。ほとんどは純血統ですが、低確率で雑種（異なる血統の組み合わせ）が生まれます。</p>
-      <button class="gacha-btn" id="gachaBtn" ${state.shards<cost?"disabled":""}>💎 再生する</button>
-      <div class="gacha-cost">所持かけら: ${fmt(state.shards)} / 必要: ${fmt(cost)}</div>
+      <h2 style="text-align:left;">${rcName}を再生する（${meta.name}）</h2>
+      <p style="font-size:12px;color:var(--text-dim);">${rcName}を${fmt(cost)}消費してモンスターを再生します。ほとんどは純血統ですが、低確率で雑種（異なる血統の組み合わせ）が生まれます。</p>
+      <button class="gacha-btn" id="gachaBtn" ${rcCurrent<cost?"disabled":""}>${rcSuffix} 再生する</button>
+      <div class="gacha-cost">所持${rcName}: ${fmt(rcCurrent)}${rcSuffix} / 必要: ${fmt(cost)}${rcSuffix}</div>
       ${highlightMon ? `
         <div class="gacha-result">
           <div style="font-size:28px;">${highlightMon.emoji}</div>
@@ -1588,14 +1724,15 @@ function renderGacha(highlightMon=null){
         <div class="shop-item">
           <div class="info">
             <div class="name">⛩️ 神官を雇う</div>
-            <div class="desc">ファームに空きがある時、自動でかけらを消費してモンスターを再生します（現在 ${cst.priests}人）</div>
+            <div class="desc">ファームに空きがある時、自動で${rcName}を消費してモンスターを再生します（現在 ${cst.priests}人）</div>
           </div>
           <button class="buy-btn" id="buyPriestBtn" ${hasCurrency(priestCost())?"":"disabled"}>雇う<br>${costLabel(priestCost())}</button>
         </div>
       </div>
-      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;">※神官は約8秒ごとに1回ずつ自動再生を試みます。かけらとファームの空きが必要です。</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:8px;">※神官は約8秒ごとに1回ずつ自動再生を試みます。${rcName}とファームの空きが必要です。</div>
     </div>
 
+    ${currencyKey()!=="mon" ? `
     <div class="panel">
       <h2>変換器（かけら→ゴールド）</h2>
       <div class="shop-grid">
@@ -1617,6 +1754,11 @@ function renderGacha(highlightMon=null){
         </div>
       ` : ""}
     </div>
+    ` : `
+    <div class="panel">
+      <p style="font-size:11px;color:var(--text-dim);">この大陸ではゴールドと円盤石のかけらがMonに圧縮されているため、変換器は利用できません。</p>
+    </div>
+    `}
 
     <div class="panel">
       <h2>血統について</h2>
@@ -1625,7 +1767,9 @@ function renderGacha(highlightMon=null){
   `;
   document.getElementById("gachaBtn").onclick = doGacha;
   document.getElementById("buyPriestBtn").onclick = buyPriest;
-  document.getElementById("buyConverterBtn").onclick = buyConverterUnit;
+  if(document.getElementById("buyConverterBtn")){
+    document.getElementById("buyConverterBtn").onclick = buyConverterUnit;
+  }
   if(document.getElementById("converterToggle")){
     document.getElementById("converterToggle").onclick = toggleConverter;
   }
@@ -1710,6 +1854,7 @@ function renderCodexModal(){
   const imaLocked = !state.isMeijin;
   const ancientLocked = !ancientUnlocked();
   const ancientMinLocked = !ancientMinUnlocked();
+  const futureLocked = !futureFambuUnlocked();
   return `
     <div class="modal-overlay" id="codexOverlay">
       <div class="modal-sheet">
@@ -1722,6 +1867,7 @@ function renderCodexModal(){
           <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ima'?'active':''} ${imaLocked?'locked':''}" data-view="monster" data-cont="ima">MIn${imaLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ancient'?'active':''} ${ancientLocked?'locked':''}" data-view="monster" data-cont="ancient">古代${ancientLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ancientmin'?'active':''} ${ancientMinLocked?'locked':''}" data-view="monster" data-cont="ancientmin">古代MIn${ancientMinLocked?' 🔒':''}</button>
+          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='futurefambu'?'active':''} ${futureLocked?'locked':''}" data-view="monster" data-cont="futurefambu">近未来${futureLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='item'?'active':''}" data-view="item">アイテム</button>
         </div>
         <div id="codexModalBody">${renderCodexModalBody()}</div>
@@ -1739,6 +1885,7 @@ function bindCodexModalEvents(){
         if(btn.dataset.cont==="ima" && !state.isMeijin) return;
         if(btn.dataset.cont==="ancient" && !ancientUnlocked()) return;
         if(btn.dataset.cont==="ancientmin" && !ancientMinUnlocked()) return;
+        if(btn.dataset.cont==="futurefambu" && !futureFambuUnlocked()) return;
         codexModalView = "monster";
         codexModalContinent = btn.dataset.cont;
       } else {
@@ -1757,7 +1904,8 @@ function openCodex(){
     (cont==="fimba") ||
     (cont==="ima" && state.isMeijin) ||
     (cont==="ancient" && ancientUnlocked()) ||
-    (cont==="ancientmin" && ancientMinUnlocked());
+    (cont==="ancientmin" && ancientMinUnlocked()) ||
+    (cont==="futurefambu" && futureFambuUnlocked());
   codexModalContinent = contOk ? cont : "fimba";
   document.getElementById("modalRoot").innerHTML = renderCodexModal();
   bindCodexModalEvents();
@@ -2032,6 +2180,7 @@ function renderArena(){
     el.onclick = ()=> setBreederRank(el.dataset.breederRank);
   });
   applyStickyOffset(document.getElementById("arenaSelectPanel"));
+  scrollLogsToBottom();
 }
 
 function renderAdventure(){
@@ -2125,6 +2274,7 @@ function renderAdventure(){
   if(document.getElementById("agencyToggle")){
     document.getElementById("agencyToggle").onclick = toggleAgency;
   }
+  scrollLogsToBottom();
 }
 
 const TAB_RENDERERS = {
@@ -2185,7 +2335,10 @@ function normalizeState(){
   state.continents.ima = state.continents.ima || freshContinentState("ima");
   state.continents.ancient = state.continents.ancient || freshContinentState("ancient");
   state.continents.ancientmin = state.continents.ancientmin || freshContinentState("ancientmin");
+  state.continents.futurefambu = state.continents.futurefambu || freshContinentState("futurefambu");
   state.currentContinent = state.currentContinent || "fimba";
+  state.mon = state.mon || 0;
+  state.isFutureFambuChampion = state.isFutureFambuChampion || false;
   state.items = state.items || { pickaxes: {}, fruits: 0 };
   // 旧仕様（ツルハシが単一の数値）から階層別オブジェクトへの移行
   if(typeof state.items.pickaxes === "number"){
