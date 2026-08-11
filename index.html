@@ -809,7 +809,7 @@ function agencyCost(){ return Math.floor(4000 * contMeta().costMult); }
 function fxCost(){ const c=cs(), m=contMeta(); return Math.floor(3000 * Math.pow(1.25, c.fx) * m.costMult); }
 function fxLevelCost(){ const c=cs(), m=contMeta(); return Math.floor(5000 * Math.pow(2, (c.fxLevel||1)-1) * m.costMult); }
 
-const FX_BASE_STAKE = 20;          // Fx1基あたりの掛け金（Mon）
+const FX_BASE_STAKE = 20000;       // Fx1基あたりの掛け金（Mon）
 const FX_BASE_FAIL_CHANCE = 0.45;  // Lv.1時点の失敗率
 const FX_FAIL_CHANCE_MIN = 0.05;   // 最大レベル時点の失敗率下限
 const FX_MAX_LEVEL = 10;
@@ -1008,11 +1008,11 @@ function fxTick(){
   const stake = FX_BASE_STAKE * cst.fx;
   const failed = Math.random() < failChance;
   if(failed){
-    const loss = Math.min(state.mon, Math.round(stake * rand(0.8,1.6)));
+    const loss = Math.min(state.mon, Math.round(stake * rand(800,1600)));
     state.mon -= loss;
     addLog(`📉 Fxが失敗し、Monを${fmt(loss)}Ⓜ️失いました`);
   } else {
-    const gain = Math.round(stake * rand(2.5,5));
+    const gain = Math.round(stake * rand(2500,5000));
     state.mon += gain;
     addLog(`📈 Fxが成功し、Monを${fmt(gain)}Ⓜ️獲得しました！`);
   }
