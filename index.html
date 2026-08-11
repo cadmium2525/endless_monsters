@@ -637,6 +637,7 @@ function freshContinentState(contKey){
     converters:0, converterEnabled:false,
     breederUnlocked:false, breederEnabled:false, breederRank:null, breederLevel:0, breederTimer:null,
     agencyUnlocked:false, agencyEnabled:false, agencyLevel:0, agencyTimer:null,
+    fx:0, fxLevel:0,
     globalMult: 1.0,
   };
 }
@@ -805,6 +806,18 @@ function autoCombineDeviceCost(){ return Math.floor(3000 * contMeta().costMult);
 function converterCost(){ const c=cs(), m=contMeta(); return Math.floor(CONVERTER_UNIT_COST_BASE * Math.pow(1.6, c.converters) * m.costMult); }
 function breederCost(){ return Math.floor(4000 * contMeta().costMult); }
 function agencyCost(){ return Math.floor(4000 * contMeta().costMult); }
+function fxCost(){ const c=cs(), m=contMeta(); return Math.floor(3000 * Math.pow(1.25, c.fx) * m.costMult); }
+function fxLevelCost(){ const c=cs(), m=contMeta(); return Math.floor(5000 * Math.pow(2, (c.fxLevel||1)-1) * m.costMult); }
+
+const FX_BASE_STAKE = 20;          // Fx1基あたりの掛け金（Mon）
+const FX_BASE_FAIL_CHANCE = 0.45;  // Lv.1時点の失敗率
+const FX_FAIL_CHANCE_MIN = 0.05;   // 最大レベル時点の失敗率下限
+const FX_MAX_LEVEL = 10;
+const FX_FAIL_CHANCE_STEP = (FX_BASE_FAIL_CHANCE - FX_FAIL_CHANCE_MIN) / (FX_MAX_LEVEL - 1);
+function fxFailChance(cst){
+  const lvl = cst.fxLevel || 1;
+  return Math.max(FX_FAIL_CHANCE_MIN, FX_BASE_FAIL_CHANCE - (lvl-1)*FX_FAIL_CHANCE_STEP);
+}
 
 const BREEDER_BASE_INTERVAL = 12000;
 const BREEDER_MAX_LEVEL = 10;
@@ -965,6 +978,46 @@ function buyMachine(){
   cst.machines++;
   addLog(`🚜 重機を導入 (${cst.machines}台目)`);
   renderMine(); updateHeader();
+}
+function buyFx(){
+  if(state.currentContinent !== "futurefambu") return;
+  const cst = cs(); const c = fxCost();
+  if(!hasCurrency(c)) return;
+  spendCurrency(c);
+  cst.fx++;
+  if(!cst.fxLevel) cst.fxLevel = 1;
+  addLog(`📊 Fxを導入しました (${cst.fx}基目)`);
+  renderMine(); updateHeader();
+}
+function buyFxLevel(){
+  const cst = cs();
+  if(!cst.fx || cst.fx<=0) return;
+  if((cst.fxLevel||1) >= FX_MAX_LEVEL) return;
+  const c = fxLevelCost();
+  if(!hasCurrency(c)) return;
+  spendCurrency(c);
+  cst.fxLevel = (cst.fxLevel||1) + 1;
+  addLog(`📊 Fxのリスク管理を強化しました (Lv.${cst.fxLevel}／失敗率${(fxFailChance(cst)*100).toFixed(1)}%)`);
+  renderMine(); updateHeader();
+}
+function fxTick(){
+  if(state.currentContinent !== "futurefambu") return;
+  const cst = cs();
+  if(!cst.fx || cst.fx<=0) return;
+  const failChance = fxFailChance(cst);
+  const stake = FX_BASE_STAKE * cst.fx;
+  const failed = Math.random() < failChance;
+  if(failed){
+    const loss = Math.min(state.mon, Math.round(stake * rand(0.8,1.6)));
+    state.mon -= loss;
+    addLog(`📉 Fxが失敗し、Monを${fmt(loss)}Ⓜ️失いました`);
+  } else {
+    const gain = Math.round(stake * rand(2.5,5));
+    state.mon += gain;
+    addLog(`📈 Fxが成功し、Monを${fmt(gain)}Ⓜ️獲得しました！`);
+  }
+  updateHeader();
+  if(state.currentTab==="mine") renderMine();
 }
 function buyPriest(){
   const cst = cs(); const c = priestCost();
@@ -1683,6 +1736,24 @@ function renderMine(){
           </div>
           <button class="buy-btn" id="buyMachineBtn" ${hasCurrency(machineCost())?"":"disabled"}>導入<br>${costLabel(machineCost())}</button>
         </div>
+        ${meta.key==="futurefambu" ? `
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">📊 Fx（投機）</div>
+            <div class="desc">約6秒ごとに1口${fmt(FX_BASE_STAKE)}Ⓜ️を賭け、成功すれば数倍のMonを獲得、失敗すれば掛け金相当のMonを失うハイリスク施設（現在 ${cst.fx}基／失敗率${(fxFailChance(cst)*100).toFixed(1)}%）</div>
+          </div>
+          <button class="buy-btn" id="buyFxBtn" ${hasCurrency(fxCost())?"":"disabled"}>導入<br>${costLabel(fxCost())}</button>
+        </div>
+        ${cst.fx>0 ? `
+        <div class="shop-item">
+          <div class="info">
+            <div class="name">🛡️ Fxのリスク管理強化</div>
+            <div class="desc">${cst.fxLevel>=FX_MAX_LEVEL ? "最大レベルに到達しています" : `Lv.${cst.fxLevel||1}→${(cst.fxLevel||1)+1}（失敗率 ${(fxFailChance(cst)*100).toFixed(1)}% → ${(Math.max(FX_FAIL_CHANCE_MIN, FX_BASE_FAIL_CHANCE-((cst.fxLevel||1))*FX_FAIL_CHANCE_STEP)*100).toFixed(1)}%）`}</div>
+          </div>
+          <button class="buy-btn" id="buyFxLevelBtn" ${((cst.fxLevel||1)<FX_MAX_LEVEL && hasCurrency(fxLevelCost()))?"":"disabled"}>${(cst.fxLevel||1)>=FX_MAX_LEVEL?"MAX":`強化<br>${costLabel(fxLevelCost())}`}</button>
+        </div>
+        ` : ""}
+        ` : ""}
       </div>
     </div>
     <div class="panel">
@@ -1693,6 +1764,12 @@ function renderMine(){
   document.getElementById("rockBtn").onclick = (e)=>doMineClick(e);
   document.getElementById("buyWorkerBtn").onclick = buyWorker;
   document.getElementById("buyMachineBtn").onclick = buyMachine;
+  if(document.getElementById("buyFxBtn")){
+    document.getElementById("buyFxBtn").onclick = buyFx;
+  }
+  if(document.getElementById("buyFxLevelBtn")){
+    document.getElementById("buyFxLevelBtn").onclick = buyFxLevel;
+  }
   scrollLogsToBottom();
 }
 
@@ -2379,6 +2456,8 @@ function normalizeState(){
     cst.agencyEnabled = cst.agencyEnabled || false;
     cst.agencyLevel = cst.agencyLevel || (cst.agencyUnlocked ? 1 : 0);
     cst.agencyTimer = (typeof cst.agencyTimer === "number") ? cst.agencyTimer : null;
+    cst.fx = cst.fx || 0;
+    cst.fxLevel = cst.fxLevel || 0;
     cst.globalMult = cst.globalMult || 1.0;
     cst.arenaWinnings = cst.arenaWinnings || 0;
     cst.monsters = (cst.monsters || []).map(m=>{
@@ -2461,6 +2540,7 @@ function init(){
   setInterval(autoCombineTick, 10000);
   setInterval(converterTick, 4000);
   setInterval(automationCooldownTick, 1000);
+  setInterval(fxTick, 6000);
   setInterval(()=>saveGame(true), 10000);
 }
 
