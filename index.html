@@ -624,6 +624,7 @@ const CONTINENTS = {
     bloodlines: BLOODLINES_FUTURE_FAMBU, ranks: RANKS_FUTURE_FAMBU, quests: QUESTS_FUTURE_FAMBU,
     topRankKey:"ETERNAL", meijinThreshold:null,
     shardToGoldRate:1,
+    fxStake:20000, fxWinMult:[2500,5000], fxLossMult:[800,1600],
   },
   futuremin: {
     key:"futuremin", name:"近未来MIn大陸", currency:"mon",
@@ -632,6 +633,7 @@ const CONTINENTS = {
     bloodlines: BLOODLINES_FUTURE_MIN, ranks: RANKS_FUTURE_MIN, quests: QUESTS_FUTURE_MIN,
     topRankKey:"INFINITE", meijinThreshold:null,
     shardToGoldRate:1,
+    fxStake:26000, fxWinMult:[2800,5600], fxLossMult:[900,1800],
   },
 };
 const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA, ...BLOODLINES_ANCIENT, ...BLOODLINES_ANCIENT_MIN, ...BLOODLINES_FUTURE_FAMBU, ...BLOODLINES_FUTURE_MIN];
@@ -850,7 +852,6 @@ function agencyCost(){ return Math.floor(4000 * contMeta().costMult); }
 function fxCost(){ const c=cs(), m=contMeta(); return Math.floor(3000 * Math.pow(1.25, c.fx) * m.costMult); }
 function fxLevelCost(){ const c=cs(), m=contMeta(); return Math.floor(5000 * Math.pow(2, (c.fxLevel||1)-1) * m.costMult); }
 
-const FX_BASE_STAKE = 20000;       // Fx1基あたりの掛け金（Mon）
 const FX_BASE_FAIL_CHANCE = 0.45;  // Lv.1時点の失敗率
 const FX_FAIL_CHANCE_MIN = 0.05;   // 最大レベル時点の失敗率下限
 const FX_MAX_LEVEL = 10;
@@ -1021,7 +1022,7 @@ function buyMachine(){
   renderMine(); updateHeader();
 }
 function buyFx(){
-  if(state.currentContinent !== "futurefambu") return;
+  if(!isMonContinent(state.currentContinent)) return;
   const cst = cs(); const c = fxCost();
   if(!hasCurrency(c)) return;
   spendCurrency(c);
@@ -1042,18 +1043,18 @@ function buyFxLevel(){
   renderMine(); updateHeader();
 }
 function fxTick(){
-  if(state.currentContinent !== "futurefambu") return;
-  const cst = cs();
+  if(!isMonContinent(state.currentContinent)) return;
+  const cst = cs(), meta = contMeta();
   if(!cst.fx || cst.fx<=0) return;
   const failChance = fxFailChance(cst);
-  const stake = FX_BASE_STAKE * cst.fx;
+  const stake = meta.fxStake * cst.fx;
   const failed = Math.random() < failChance;
   if(failed){
-    const loss = Math.min(state.mon, Math.round(stake * rand(800,1600)));
+    const loss = Math.min(state.mon, Math.round(stake * rand(...meta.fxLossMult)));
     state.mon -= loss;
     addLog(`📉 Fxが失敗し、Monを${fmt(loss)}Ⓜ️失いました`);
   } else {
-    const gain = Math.round(stake * rand(2500,5000));
+    const gain = Math.round(stake * rand(...meta.fxWinMult));
     state.mon += gain;
     addLog(`📈 Fxが成功し、Monを${fmt(gain)}Ⓜ️獲得しました！`);
   }
@@ -1806,11 +1807,11 @@ function renderMine(){
           </div>
           <button class="buy-btn" id="buyMachineBtn" ${hasCurrency(machineCost())?"":"disabled"}>導入<br>${costLabel(machineCost())}</button>
         </div>
-        ${meta.key==="futurefambu" ? `
+        ${meta.currency==="mon" ? `
         <div class="shop-item">
           <div class="info">
             <div class="name">📊 Fx（投機）</div>
-            <div class="desc">約6秒ごとに1口${fmt(FX_BASE_STAKE)}Ⓜ️を賭け、成功すれば数倍のMonを獲得、失敗すれば掛け金相当のMonを失うハイリスク施設（現在 ${cst.fx}基／失敗率${(fxFailChance(cst)*100).toFixed(1)}%）</div>
+            <div class="desc">約6秒ごとに1口${fmt(meta.fxStake)}Ⓜ️を賭け、成功すれば数倍のMonを獲得、失敗すれば掛け金相当のMonを失うハイリスク施設（現在 ${cst.fx}基／失敗率${(fxFailChance(cst)*100).toFixed(1)}%）</div>
           </div>
           <button class="buy-btn" id="buyFxBtn" ${hasCurrency(fxCost())?"":"disabled"}>導入<br>${costLabel(fxCost())}</button>
         </div>
