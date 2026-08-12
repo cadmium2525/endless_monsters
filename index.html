@@ -541,20 +541,47 @@ const BLOODLINES_FUTURE_FAMBU = [
   { key:"singularity", name:"特異点",     emoji:"🌐", powerRange:[175,270], wisdomRange:[175,270],lifeRange:[135,180], weight:2  },
 ];
 const RANKS_FUTURE_FAMBU = [
-  { key:"E",       req:90,   reward:[5,10] },
-  { key:"D",       req:211,  reward:[12,22] },
-  { key:"C",       req:360,  reward:[25,45] },
-  { key:"B",       req:569,  reward:[55,90] },
-  { key:"A",       req:839,  reward:[110,170] },
-  { key:"S",       req:1199, reward:[220,340] },
-  { key:"SS",      req:1677, reward:[420,650] },
-  { key:"QUANTUM", label:"量子", req:2390, reward:[850,1300] },
-  { key:"ETERNAL", label:"永遠", req:3330, reward:[1900,2900] },
+  { key:"E",       req:90,   reward:[1000,2000] },
+  { key:"D",       req:211,  reward:[2500,4500] },
+  { key:"C",       req:360,  reward:[5000,9000] },
+  { key:"B",       req:569,  reward:[11000,18000] },
+  { key:"A",       req:839,  reward:[22000,34000] },
+  { key:"S",       req:1199, reward:[44000,68000] },
+  { key:"SS",      req:1677, reward:[84000,130000] },
+  { key:"QUANTUM", label:"量子", req:2390, reward:[170000,260000] },
+  { key:"ETERNAL", label:"永遠", req:3330, reward:[380000,580000] },
 ];
 const QUESTS_FUTURE_FAMBU = [
-  { key:"near",   name:"廃棄区画のサルベージ", desc:"近未来FAMBUでの手頃な難易度。", req:240, lifeCost:2, goldRange:[15,25], pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
-  { key:"deep",   name:"地下データセンター",   desc:"歯応えのある中難度クエスト。",   req:540, lifeCost:3, goldRange:[40,70],  pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
-  { key:"secret", name:"封鎖されたAIコア",     desc:"近未来FAMBUの高難度クエスト。", req:960, lifeCost:4, goldRange:[90,150], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+  { key:"near",   name:"廃棄区画のサルベージ", desc:"近未来FAMBUでの手頃な難易度。", req:240, lifeCost:2, goldRange:[1500,2500], pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"deep",   name:"地下データセンター",   desc:"歯応えのある中難度クエスト。",   req:540, lifeCost:3, goldRange:[4000,7000],  pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
+  { key:"secret", name:"封鎖されたAIコア",     desc:"近未来FAMBUの高難度クエスト。", req:960, lifeCost:4, goldRange:[9000,15000], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
+];
+
+const BLOODLINES_FUTURE_MIN = [
+  { key:"quark",       name:"クォーク",       emoji:"⚛️", powerRange:[145,235], wisdomRange:[33,72],  lifeRange:[105,145], weight:15 },
+  { key:"darkmatter",  name:"ダークマター",   emoji:"🌑", powerRange:[33,72],   wisdomRange:[145,235],lifeRange:[130,175], weight:15 },
+  { key:"warp",        name:"ワープ",         emoji:"🌀", powerRange:[72,125],  wisdomRange:[72,125], lifeRange:[98,135],  weight:15 },
+  { key:"fusion",      name:"核融合",         emoji:"☢️", powerRange:[165,255], wisdomRange:[16,52],  lifeRange:[85,115],  weight:15 },
+  { key:"entangle",    name:"量子もつれ",     emoji:"🔗", powerRange:[40,85],   wisdomRange:[165,245],lifeRange:[145,195], weight:15 },
+  { key:"photon",      name:"光子",           emoji:"💫", powerRange:[105,170], wisdomRange:[105,170],lifeRange:[90,130],  weight:15 },
+  { key:"multiverse",  name:"並行世界",       emoji:"🪞", powerRange:[130,210], wisdomRange:[130,210],lifeRange:[105,150], weight:8  },
+  { key:"omega",       name:"オメガ",         emoji:"Ω", powerRange:[228,350], wisdomRange:[228,350],lifeRange:[175,235], weight:2  },
+];
+const RANKS_FUTURE_MIN = [
+  { key:"E",           req:117,  reward:[1300,2600] },
+  { key:"D",           req:274,  reward:[3250,5850] },
+  { key:"C",           req:468,  reward:[6500,11700] },
+  { key:"B",           req:740,  reward:[14300,23400] },
+  { key:"A",           req:1091, reward:[28600,44200] },
+  { key:"S",           req:1559, reward:[57200,88400] },
+  { key:"SS",          req:2180, reward:[109200,169000] },
+  { key:"MULTIVERSAL", label:"多元", req:3107, reward:[221000,338000] },
+  { key:"INFINITE",    label:"無限", req:4329, reward:[494000,754000] },
+];
+const QUESTS_FUTURE_MIN = [
+  { key:"near",   name:"次元漂流物の回収",   desc:"近未来MInでの手頃な難易度。", req:312,  lifeCost:2, goldRange:[1950,3250],  pickaxeChance:0.5,  fruitChance:0.15, itemAmount:[1,2] },
+  { key:"deep",   name:"崩壊した並行世界",   desc:"歯応えのある中難度クエスト。", req:702,  lifeCost:3, goldRange:[5200,9100],  pickaxeChance:0.45, fruitChance:0.3,  itemAmount:[1,3] },
+  { key:"secret", name:"無限回廊の最深部",   desc:"近未来MInの高難度クエスト。", req:1248, lifeCost:4, goldRange:[11700,19500], pickaxeChance:0.35, fruitChance:0.5,  itemAmount:[2,4] },
 ];
 
 const CONTINENTS = {
@@ -598,8 +625,16 @@ const CONTINENTS = {
     topRankKey:"ETERNAL", meijinThreshold:null,
     shardToGoldRate:1,
   },
+  futuremin: {
+    key:"futuremin", name:"近未来MIn大陸", currency:"mon",
+    shardRegenCost:65, goldMult:1, shardMult:1, costMult:25,
+    startFarmCapacity:2,
+    bloodlines: BLOODLINES_FUTURE_MIN, ranks: RANKS_FUTURE_MIN, quests: QUESTS_FUTURE_MIN,
+    topRankKey:"INFINITE", meijinThreshold:null,
+    shardToGoldRate:1,
+  },
 };
-const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA, ...BLOODLINES_ANCIENT, ...BLOODLINES_ANCIENT_MIN, ...BLOODLINES_FUTURE_FAMBU];
+const ALL_BLOODLINES = [...BLOODLINES_FIMBA, ...BLOODLINES_IMA, ...BLOODLINES_ANCIENT, ...BLOODLINES_ANCIENT_MIN, ...BLOODLINES_FUTURE_FAMBU, ...BLOODLINES_FUTURE_MIN];
 const TRAVEL_COST = 25000;
 const ANCIENT_ENTRY_SHARD_COST = 2000000;
 const ANCIENT_UNLOCK_ISEKAI_CLEARS = 10;
@@ -607,8 +642,11 @@ const ANCIENT_MIN_ENTRY_SHARD_COST = 2000000;
 const ANCIENT_MIN_UNLOCK_TYRANO_CLEARS = 10;
 const FUTURE_FAMBU_ENTRY_GOLD_COST = TRAVEL_COST; // 通常の渡航代（ゴールド）。この後ゴールド＋かけらがMonに圧縮される
 const MON_COMPRESSION = 1000; // (ゴールド＋かけら) ÷ この値 = Mon
+const FUTURE_MIN_UNLOCK_ETERNAL_CLEARS = 10; // 近未来FAMBUの永遠ランク制覇回数（近未来MIn解放条件）
+const FUTURE_INTERNAL_TRAVEL_COST = 5000; // 近未来FAMBU⇔近未来MIn間の直接移動コスト（Mon）
 const CONVERTER_SHARDS_PER_TICK_BASE = 5;
 const CONVERTER_UNIT_COST_BASE = 2000;
+function isMonContinent(cont){ return contMeta(cont).currency === "mon"; }
 
 /* 冒険で拾うツルハシの階層。dropContinent が現在地の大陸なら、そのツルハシが出る */
 const PICKAXE_TIERS = [
@@ -700,7 +738,7 @@ function spendRegenCurrency(amount, cont){
 const DEFAULT_STATE = () => ({
   gold: 0,
   shards: 0,
-  mon: 0,                                // 近未来FAMBU専用通貨（滞在中のみゴールド／かけらの代わりに使用）
+  mon: 0,                                // 近未来大陸専用通貨（滞在中のみゴールド／かけらの代わりに使用）
   clickLevel: 1,
   nextMonId: 1,
   currentContinent: "fimba",
@@ -710,14 +748,17 @@ const DEFAULT_STATE = () => ({
     ancient: freshContinentState("ancient"),
     ancientmin: freshContinentState("ancientmin"),
     futurefambu: freshContinentState("futurefambu"),
+    futuremin: freshContinentState("futuremin"),
   },
   isMeijin: false,
   isImaChampion: false,
   isAncientChampion: false,
   isAncientMinChampion: false,
   isFutureFambuChampion: false,
+  isFutureMinChampion: false,
   isekaiClearCount: 0,                 // MIn異世界ランク制覇回数（古代FAMBU解放条件）
   tyranoClearCount: 0,                 // 古代FAMBUティラノランク制覇回数（古代MIn解放条件）
+  eternalClearCount: 0,                // 近未来FAMBU永遠ランク制覇回数（近未来MIn解放条件）
   items: {
     pickaxes: { basic:0, steel:0, titanium:0, diamond:0 }, // ツルハシ（階層別・クリック＋自動どちらにも効く）
     grips: { basic:0, steel:0, titanium:0, diamond:0 },    // グリップ（階層別・クリックのみ恒久強化）
@@ -1306,10 +1347,19 @@ function performTournamentEntry(monId, rankKey){
           state.isAncientMinChampion = true;
           toast("🌌 創世の覇者に認定されました！近未来FAMBU大陸への渡航が解放されます");
         }
-      } else {
+      } else if(state.currentContinent==="futurefambu"){
+        state.eternalClearCount++;
         if(!state.isFutureFambuChampion){
           state.isFutureFambuChampion = true;
           toast("🌐 永遠の覇者に認定されました！");
+        }
+        if(state.eternalClearCount === FUTURE_MIN_UNLOCK_ETERNAL_CLEARS){
+          toast(`🪞 近未来MIn大陸への渡航条件を満たしました！（永遠ランク制覇 ${state.eternalClearCount}回）`);
+        }
+      } else {
+        if(!state.isFutureMinChampion){
+          state.isFutureMinChampion = true;
+          toast("♾️ 無限の覇者に認定されました！");
         }
       }
     }
@@ -1550,6 +1600,9 @@ function ancientMinUnlocked(){
 function futureFambuUnlocked(){
   return state.isAncientMinChampion;
 }
+function futureMinUnlocked(){
+  return state.eternalClearCount >= FUTURE_MIN_UNLOCK_ETERNAL_CLEARS;
+}
 
 function travelTo(cont){
   if(state.currentContinent === cont) return;
@@ -1557,11 +1610,17 @@ function travelTo(cont){
   if(cont === "ancient" && !ancientUnlocked()) return;
   if(cont === "ancientmin" && !ancientMinUnlocked()) return;
   if(cont === "futurefambu" && !futureFambuUnlocked()) return;
+  if(cont === "futuremin" && !futureMinUnlocked()) return;
 
-  const leavingFuture = state.currentContinent === "futurefambu";
-  const enteringFuture = cont === "futurefambu";
+  const leavingMon = isMonContinent(state.currentContinent);
+  const enteringMon = isMonContinent(cont);
 
-  if(!leavingFuture && !enteringFuture){
+  if(leavingMon && enteringMon){
+    // 近未来大陸同士の直接移動（Monのまま、圧縮・復元はしない）
+    if(state.mon < FUTURE_INTERNAL_TRAVEL_COST){ toast("Monが足りません"); return; }
+    state.mon -= FUTURE_INTERNAL_TRAVEL_COST;
+    addLog(`🌐 ${CONTINENTS[cont].name}へ渡航しました（-${fmt(FUTURE_INTERNAL_TRAVEL_COST)}Ⓜ️）`);
+  } else if(!leavingMon && !enteringMon){
     if(cont === "ancient" || cont === "ancientmin"){
       const shardCost = cont === "ancient" ? ANCIENT_ENTRY_SHARD_COST : ANCIENT_MIN_ENTRY_SHARD_COST;
       if(state.shards < shardCost){ toast("円盤石のかけらが足りません"); return; }
@@ -1572,14 +1631,14 @@ function travelTo(cont){
       state.gold -= TRAVEL_COST;
       addLog(`⛴️ ${CONTINENTS[cont].name}へ渡航しました（-${fmt(TRAVEL_COST)}G）`);
     }
-  } else if(enteringFuture){
+  } else if(enteringMon){
     // ゴールド＋円盤石のかけらをMonに圧縮する
     const gained = Math.floor((state.gold + state.shards) / MON_COMPRESSION);
     addLog(`🌐 ゴールド${fmt(state.gold)}Gと円盤石${fmt(state.shards)}💎をMon ${fmt(gained)}に圧縮し、${CONTINENTS[cont].name}へ渡航しました`);
     state.mon += gained;
     state.gold = 0;
     state.shards = 0;
-  } else if(leavingFuture){
+  } else if(leavingMon){
     // Monをゴールド＋円盤石のかけらに戻す（元の表記に復元）
     const backTotal = state.mon * MON_COMPRESSION;
     const backGold = Math.floor(backTotal/2);
@@ -1608,6 +1667,7 @@ const TITLES = [
   { key:"ancient_champion",   label:"古代の覇者", check: ()=>state.isAncientChampion },
   { key:"ancientmin_champion",label:"創世の覇者", check: ()=>state.isAncientMinChampion },
   { key:"future_champion",    label:"永遠の覇者", check: ()=>state.isFutureFambuChampion },
+  { key:"futuremin_champion", label:"無限の覇者", check: ()=>state.isFutureMinChampion },
 ];
 function currentTitle(){
   let best = null;
@@ -1639,6 +1699,8 @@ function renderTravelModal(){
   const ancientOk = ancientUnlocked();
   const ancientMinOk = ancientMinUnlocked();
   const futureOk = futureFambuUnlocked();
+  const futureMinOk = futureMinUnlocked();
+  const fromMon = isMonContinent(state.currentContinent);
   return `
     <div class="modal-overlay" id="travelOverlay">
       <div class="modal-sheet">
@@ -1681,7 +1743,14 @@ function renderTravelModal(){
               <div class="name">🌐 近未来FAMBU大陸 ${!futureOk?"🔒":""}</div>
               <div class="desc">${!futureOk ? "古代MInの創世ランクを制覇（創世の覇者）すると渡航できます。" : (state.currentContinent==="futurefambu" ? "現在地です。" : `渡航時にゴールドと円盤石のかけらを合算してMonに圧縮します（÷${fmt(MON_COMPRESSION)}）。他大陸へ戻ると元の表記（ゴールド・かけら）に自動で戻ります。`)}</div>
             </div>
-            <button class="buy-btn" id="travelFutureBtn" ${(!futureOk || state.currentContinent==="futurefambu")?"disabled":""}>${state.currentContinent==="futurefambu" ? "現在地" : "移動<br>Monへ圧縮"}</button>
+            <button class="buy-btn" id="travelFutureBtn" ${(!futureOk || state.currentContinent==="futurefambu")?"disabled":""}>${state.currentContinent==="futurefambu" ? "現在地" : (fromMon ? `移動<br>${fmt(FUTURE_INTERNAL_TRAVEL_COST)}Ⓜ️` : "移動<br>Monへ圧縮")}</button>
+          </div>
+          <div class="shop-item">
+            <div class="info">
+              <div class="name">🪞 近未来MIn大陸 ${!futureMinOk?"🔒":""}</div>
+              <div class="desc">${!futureMinOk ? `近未来FAMBUの永遠ランクを${FUTURE_MIN_UNLOCK_ETERNAL_CLEARS}回制覇すると渡航できます（現在 ${state.eternalClearCount}回）。` : (state.currentContinent==="futuremin" ? "現在地です。" : "通貨はこちらもMon。近未来FAMBUからは直接Monで移動でき、他大陸からは圧縮して渡航します。")}</div>
+            </div>
+            <button class="buy-btn" id="travelFutureMinBtn" ${(!futureMinOk || state.currentContinent==="futuremin")?"disabled":""}>${state.currentContinent==="futuremin" ? "現在地" : (fromMon ? `移動<br>${fmt(FUTURE_INTERNAL_TRAVEL_COST)}Ⓜ️` : "移動<br>Monへ圧縮")}</button>
           </div>
         </div>
       </div>
@@ -1697,6 +1766,7 @@ function openTravelModal(){
   document.getElementById("travelAncientBtn").onclick = ()=>travelTo("ancient");
   document.getElementById("travelAncientMinBtn").onclick = ()=>travelTo("ancientmin");
   document.getElementById("travelFutureBtn").onclick = ()=>travelTo("futurefambu");
+  document.getElementById("travelFutureMinBtn").onclick = ()=>travelTo("futuremin");
 }
 
 /* =========================================================
@@ -1932,6 +2002,7 @@ function renderCodexModal(){
   const ancientLocked = !ancientUnlocked();
   const ancientMinLocked = !ancientMinUnlocked();
   const futureLocked = !futureFambuUnlocked();
+  const futureMinLocked = !futureMinUnlocked();
   return `
     <div class="modal-overlay" id="codexOverlay">
       <div class="modal-sheet">
@@ -1945,6 +2016,7 @@ function renderCodexModal(){
           <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ancient'?'active':''} ${ancientLocked?'locked':''}" data-view="monster" data-cont="ancient">古代${ancientLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='ancientmin'?'active':''} ${ancientMinLocked?'locked':''}" data-view="monster" data-cont="ancientmin">古代MIn${ancientMinLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='futurefambu'?'active':''} ${futureLocked?'locked':''}" data-view="monster" data-cont="futurefambu">近未来${futureLocked?' 🔒':''}</button>
+          <button class="codex-tab-btn ${codexModalView==='monster'&&codexModalContinent==='futuremin'?'active':''} ${futureMinLocked?'locked':''}" data-view="monster" data-cont="futuremin">近未来MIn${futureMinLocked?' 🔒':''}</button>
           <button class="codex-tab-btn ${codexModalView==='item'?'active':''}" data-view="item">アイテム</button>
         </div>
         <div id="codexModalBody">${renderCodexModalBody()}</div>
@@ -1963,6 +2035,7 @@ function bindCodexModalEvents(){
         if(btn.dataset.cont==="ancient" && !ancientUnlocked()) return;
         if(btn.dataset.cont==="ancientmin" && !ancientMinUnlocked()) return;
         if(btn.dataset.cont==="futurefambu" && !futureFambuUnlocked()) return;
+        if(btn.dataset.cont==="futuremin" && !futureMinUnlocked()) return;
         codexModalView = "monster";
         codexModalContinent = btn.dataset.cont;
       } else {
@@ -1982,7 +2055,8 @@ function openCodex(){
     (cont==="ima" && state.isMeijin) ||
     (cont==="ancient" && ancientUnlocked()) ||
     (cont==="ancientmin" && ancientMinUnlocked()) ||
-    (cont==="futurefambu" && futureFambuUnlocked());
+    (cont==="futurefambu" && futureFambuUnlocked()) ||
+    (cont==="futuremin" && futureMinUnlocked());
   codexModalContinent = contOk ? cont : "fimba";
   document.getElementById("modalRoot").innerHTML = renderCodexModal();
   bindCodexModalEvents();
@@ -2413,9 +2487,12 @@ function normalizeState(){
   state.continents.ancient = state.continents.ancient || freshContinentState("ancient");
   state.continents.ancientmin = state.continents.ancientmin || freshContinentState("ancientmin");
   state.continents.futurefambu = state.continents.futurefambu || freshContinentState("futurefambu");
+  state.continents.futuremin = state.continents.futuremin || freshContinentState("futuremin");
   state.currentContinent = state.currentContinent || "fimba";
   state.mon = state.mon || 0;
   state.isFutureFambuChampion = state.isFutureFambuChampion || false;
+  state.isFutureMinChampion = state.isFutureMinChampion || false;
+  state.eternalClearCount = state.eternalClearCount || 0;
   state.items = state.items || { pickaxes: {}, fruits: 0 };
   // 旧仕様（ツルハシが単一の数値）から階層別オブジェクトへの移行
   if(typeof state.items.pickaxes === "number"){
